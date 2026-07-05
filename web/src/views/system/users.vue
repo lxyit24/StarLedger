@@ -1,13 +1,13 @@
 <template>
   <div>
     <el-card>
-      <template #header><el-row justify="space-between" align="middle"><span>用户管理</span><el-button type="primary" @click="openDialog()">新增用户</el-button></el-row></template>
+      <template #header><el-row justify="space-between" align="middle"><span>用户管理</span><el-row gap="12"><el-input v-model="searchKey" placeholder="搜索用户名/姓名" clearable style="width: 200px" @input="fetchData" /><el-button type="primary" @click="openDialog()">新增用户</el-button></el-row></el-row></template>
       <el-table :data="tableData" stripe v-loading="loading" empty-text="暂无数据">
         <el-table-column prop="username" label="用户名" width="120" />
         <el-table-column prop="real_name" label="真实姓名" width="120" />
-        <el-table-column prop="email" label="邮箱" min-width="160" />
-        <el-table-column prop="phone" label="手机号" width="130" />
-        <el-table-column prop="status" label="状态" width="80"><template #default="{ row }"><el-tag :type="row.status === 'active' ? 'success' : 'danger'" size="small">{{ row.status }}</el-tag></template></el-table-column>
+        <el-table-column prop="email" label="邮箱" min-width="160"><template #default="{ row }">{{ row.email || '--' }}</template></el-table-column>
+        <el-table-column prop="phone" label="手机号" width="130"><template #default="{ row }">{{ row.phone || '--' }}</template></el-table-column>
+        <el-table-column prop="status" label="状态" width="80"><template #default="{ row }"><el-tag :type="userStatusType(row.status)" size="small">{{ formatUserStatus(row.status) }}</el-tag></template></el-table-column>
         <el-table-column label="操作" width="180" fixed="right"><template #default="{ row }"><el-button size="small" @click="openDialog(row)">编辑</el-button><el-popconfirm title="确定删除？" @confirm="handleDelete(row.id)"><template #reference><el-button size="small" type="danger">删除</el-button></template></el-popconfirm></template></el-table-column>
       </el-table>
       <el-pagination style="margin-top: 16px; justify-content: flex-end" v-model:current-page="query.page" v-model:page-size="query.page_size" :total="total" layout="total, sizes, prev, pager, next" @change="fetchData" />
@@ -28,7 +28,9 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, type FormInstance } from 'element-plus'
 import { listUsers, createUser, updateUser, deleteUser } from '../../api/system'
+import { formatUserStatus, userStatusType } from '../../utils/format'
 const loading = ref(false)
+const searchKey = ref('')
 const tableData = ref<any[]>([])
 const total = ref(0)
 const query = reactive({ page: 1, page_size: 20 })

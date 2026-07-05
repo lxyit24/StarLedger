@@ -10,6 +10,7 @@ import (
 	"starledger/ent/auditlog"
 	"starledger/ent/bill"
 	"starledger/ent/contract"
+	"starledger/ent/invoice"
 	"starledger/ent/predicate"
 	"starledger/ent/role"
 	"starledger/ent/serverlease"
@@ -39,6 +40,7 @@ type TenantQuery struct {
 	withContracts    *ContractQuery
 	withTasks        *TaskQuery
 	withAuditLogs    *AuditLogQuery
+	withInvoices     *InvoiceQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -251,6 +253,28 @@ func (_q *TenantQuery) QueryAuditLogs() *AuditLogQuery {
 	return query
 }
 
+// QueryInvoices chains the current query on the "invoices" edge.
+func (_q *TenantQuery) QueryInvoices() *InvoiceQuery {
+	query := (&InvoiceClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(tenant.Table, tenant.FieldID, selector),
+			sqlgraph.To(invoice.Table, invoice.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, tenant.InvoicesTable, tenant.InvoicesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Tenant entity from the query.
 // Returns a *NotFoundError when no Tenant was found.
 func (_q *TenantQuery) First(ctx context.Context) (*Tenant, error) {
@@ -451,6 +475,7 @@ func (_q *TenantQuery) Clone() *TenantQuery {
 		withContracts:    _q.withContracts.Clone(),
 		withTasks:        _q.withTasks.Clone(),
 		withAuditLogs:    _q.withAuditLogs.Clone(),
+		withInvoices:     _q.withInvoices.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -545,6 +570,17 @@ func (_q *TenantQuery) WithAuditLogs(opts ...func(*AuditLogQuery)) *TenantQuery 
 	return _q
 }
 
+// WithInvoices tells the query-builder to eager-load the nodes that are connected to
+// the "invoices" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *TenantQuery) WithInvoices(opts ...func(*InvoiceQuery)) *TenantQuery {
+	query := (&InvoiceClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withInvoices = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -623,7 +659,7 @@ func (_q *TenantQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Tenan
 	var (
 		nodes       = []*Tenant{}
 		_spec       = _q.querySpec()
-		loadedTypes = [8]bool{
+		loadedTypes = [9]bool{
 			_q.withUsers != nil,
 			_q.withRoles != nil,
 			_q.withServerLeases != nil,
@@ -632,6 +668,7 @@ func (_q *TenantQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Tenan
 			_q.withContracts != nil,
 			_q.withTasks != nil,
 			_q.withAuditLogs != nil,
+			_q.withInvoices != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -705,6 +742,13 @@ func (_q *TenantQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Tenan
 		if err := _q.loadAuditLogs(ctx, query, nodes,
 			func(n *Tenant) { n.Edges.AuditLogs = []*AuditLog{} },
 			func(n *Tenant, e *AuditLog) { n.Edges.AuditLogs = append(n.Edges.AuditLogs, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withInvoices; query != nil {
+		if err := _q.loadInvoices(ctx, query, nodes,
+			func(n *Tenant) { n.Edges.Invoices = []*Invoice{} },
+			func(n *Tenant, e *Invoice) { n.Edges.Invoices = append(n.Edges.Invoices, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -936,6 +980,36 @@ func (_q *TenantQuery) loadAuditLogs(ctx context.Context, query *AuditLogQuery, 
 	}
 	query.Where(predicate.AuditLog(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(tenant.AuditLogsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TenantID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *TenantQuery) loadInvoices(ctx context.Context, query *InvoiceQuery, nodes []*Tenant, init func(*Tenant), assign func(*Tenant, *Invoice)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Tenant)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(invoice.FieldTenantID)
+	}
+	query.Where(predicate.Invoice(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(tenant.InvoicesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

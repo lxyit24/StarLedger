@@ -10,11 +10,8 @@ import (
 	"starledger/internal/pkg"
 )
 
-// Module type to tenant type mapping
-var moduleTenantTypeMap = map[string][]string{
-	"contract": {"enterprise"},
-	"task":     {"team"},
-}
+// Module type to tenant type mapping (empty = all tenant types can access all modules)
+var moduleTenantTypeMap = map[string][]string{}
 
 // ModuleAccess checks if the current tenant has enabled the given module.
 // Core modules (billing) are always accessible. This middleware should be used after JWTAuth + TenantIsolation.

@@ -14,13 +14,13 @@
       <el-table :data="tableData" stripe v-loading="loading" empty-text="暂无数据" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="45" />
         <el-table-column prop="bill_no" label="账单号" width="160" />
-        <el-table-column prop="bill_type" label="类型" width="100" />
+        <el-table-column prop="bill_type" label="类型" width="100"><template #default="{ row }">{{ formatBillType(row.bill_type) }}</template></el-table-column>
         <el-table-column prop="amount" label="金额" width="100" align="right"><template #default="{ row }">¥{{ row.amount }}</template></el-table-column>
-        <el-table-column prop="bill_date" label="账单日" width="110" />
-        <el-table-column prop="due_date" label="到期日" width="110" />
-        <el-table-column prop="paid_date" label="支付日" width="110" />
-        <el-table-column prop="payment_status" label="状态" width="80"><template #default="{ row }"><el-tag :type="payStatusType(row.payment_status)" size="small">{{ row.payment_status }}</el-tag></template></el-table-column>
-        <el-table-column prop="payment_method" label="支付方式" width="100" />
+        <el-table-column prop="bill_date" label="账单日" width="110"><template #default="{ row }">{{ formatDate(row.bill_date) }}</template></el-table-column>
+        <el-table-column prop="due_date" label="到期日" width="110"><template #default="{ row }">{{ formatDate(row.due_date) }}</template></el-table-column>
+        <el-table-column prop="paid_date" label="支付日" width="110"><template #default="{ row }">{{ formatDate(row.paid_date) }}</template></el-table-column>
+        <el-table-column prop="payment_status" label="状态" width="80"><template #default="{ row }"><el-tag :type="paymentStatusType(row.payment_status)" size="small">{{ formatPaymentStatus(row.payment_status) }}</el-tag></template></el-table-column>
+        <el-table-column prop="payment_method" label="支付方式" width="100"><template #default="{ row }">{{ formatPaymentMethod(row.payment_method) }}</template></el-table-column>
         <el-table-column prop="remark" label="备注" min-width="120" show-overflow-tooltip />
         <el-table-column label="操作" width="260" fixed="right"><template #default="{ row }"><el-button size="small" @click="openDialog(row)">编辑</el-button><el-button v-if="row.payment_status === 'pending' || row.payment_status === 'overdue'" size="small" type="success" @click="handlePay(row)">支付</el-button><el-button v-if="row.payment_status === 'pending'" size="small" type="warning" @click="handleCancel(row.id)">取消</el-button><el-popconfirm title="确定删除？" @confirm="handleDelete(row.id)"><template #reference><el-button size="small" type="danger">删除</el-button></template></el-popconfirm></template></el-table-column>
       </el-table>
@@ -50,6 +50,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance } from 'element-plus'
 import { listBills, createBill, updateBill, deleteBill, payBill, cancelBill, batchPayBills, batchDeleteBills } from '../../api/bill'
+import { formatDate, formatPaymentStatus, paymentStatusType, formatBillType, formatPaymentMethod } from '../../utils/format'
 const loading = ref(false)
 const tableData = ref<any[]>([])
 const total = ref(0)

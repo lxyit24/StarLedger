@@ -4,13 +4,11 @@ package ent
 
 import (
 	"context"
-	"database/sql/driver"
 	"fmt"
 	"math"
 	"starledger/ent/bill"
 	"starledger/ent/invoice"
 	"starledger/ent/predicate"
-	"starledger/ent/serverlease"
 	"starledger/ent/tenant"
 
 	"entgo.io/ent"
@@ -19,54 +17,53 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
-// BillQuery is the builder for querying Bill entities.
-type BillQuery struct {
+// InvoiceQuery is the builder for querying Invoice entities.
+type InvoiceQuery struct {
 	config
-	ctx             *QueryContext
-	order           []bill.OrderOption
-	inters          []Interceptor
-	predicates      []predicate.Bill
-	withTenant      *TenantQuery
-	withServerLease *ServerLeaseQuery
-	withInvoices    *InvoiceQuery
+	ctx        *QueryContext
+	order      []invoice.OrderOption
+	inters     []Interceptor
+	predicates []predicate.Invoice
+	withTenant *TenantQuery
+	withBill   *BillQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
-// Where adds a new predicate for the BillQuery builder.
-func (_q *BillQuery) Where(ps ...predicate.Bill) *BillQuery {
+// Where adds a new predicate for the InvoiceQuery builder.
+func (_q *InvoiceQuery) Where(ps ...predicate.Invoice) *InvoiceQuery {
 	_q.predicates = append(_q.predicates, ps...)
 	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (_q *BillQuery) Limit(limit int) *BillQuery {
+func (_q *InvoiceQuery) Limit(limit int) *InvoiceQuery {
 	_q.ctx.Limit = &limit
 	return _q
 }
 
 // Offset to start from.
-func (_q *BillQuery) Offset(offset int) *BillQuery {
+func (_q *InvoiceQuery) Offset(offset int) *InvoiceQuery {
 	_q.ctx.Offset = &offset
 	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (_q *BillQuery) Unique(unique bool) *BillQuery {
+func (_q *InvoiceQuery) Unique(unique bool) *InvoiceQuery {
 	_q.ctx.Unique = &unique
 	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (_q *BillQuery) Order(o ...bill.OrderOption) *BillQuery {
+func (_q *InvoiceQuery) Order(o ...invoice.OrderOption) *InvoiceQuery {
 	_q.order = append(_q.order, o...)
 	return _q
 }
 
 // QueryTenant chains the current query on the "tenant" edge.
-func (_q *BillQuery) QueryTenant() *TenantQuery {
+func (_q *InvoiceQuery) QueryTenant() *TenantQuery {
 	query := (&TenantClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
@@ -77,9 +74,9 @@ func (_q *BillQuery) QueryTenant() *TenantQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(bill.Table, bill.FieldID, selector),
+			sqlgraph.From(invoice.Table, invoice.FieldID, selector),
 			sqlgraph.To(tenant.Table, tenant.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, bill.TenantTable, bill.TenantColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, invoice.TenantTable, invoice.TenantColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -87,9 +84,9 @@ func (_q *BillQuery) QueryTenant() *TenantQuery {
 	return query
 }
 
-// QueryServerLease chains the current query on the "server_lease" edge.
-func (_q *BillQuery) QueryServerLease() *ServerLeaseQuery {
-	query := (&ServerLeaseClient{config: _q.config}).Query()
+// QueryBill chains the current query on the "bill" edge.
+func (_q *InvoiceQuery) QueryBill() *BillQuery {
+	query := (&BillClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -99,9 +96,9 @@ func (_q *BillQuery) QueryServerLease() *ServerLeaseQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(bill.Table, bill.FieldID, selector),
-			sqlgraph.To(serverlease.Table, serverlease.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, bill.ServerLeaseTable, bill.ServerLeaseColumn),
+			sqlgraph.From(invoice.Table, invoice.FieldID, selector),
+			sqlgraph.To(bill.Table, bill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, invoice.BillTable, invoice.BillColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -109,43 +106,21 @@ func (_q *BillQuery) QueryServerLease() *ServerLeaseQuery {
 	return query
 }
 
-// QueryInvoices chains the current query on the "invoices" edge.
-func (_q *BillQuery) QueryInvoices() *InvoiceQuery {
-	query := (&InvoiceClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(bill.Table, bill.FieldID, selector),
-			sqlgraph.To(invoice.Table, invoice.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, bill.InvoicesTable, bill.InvoicesColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// First returns the first Bill entity from the query.
-// Returns a *NotFoundError when no Bill was found.
-func (_q *BillQuery) First(ctx context.Context) (*Bill, error) {
+// First returns the first Invoice entity from the query.
+// Returns a *NotFoundError when no Invoice was found.
+func (_q *InvoiceQuery) First(ctx context.Context) (*Invoice, error) {
 	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
-		return nil, &NotFoundError{bill.Label}
+		return nil, &NotFoundError{invoice.Label}
 	}
 	return nodes[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (_q *BillQuery) FirstX(ctx context.Context) *Bill {
+func (_q *InvoiceQuery) FirstX(ctx context.Context) *Invoice {
 	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -153,22 +128,22 @@ func (_q *BillQuery) FirstX(ctx context.Context) *Bill {
 	return node
 }
 
-// FirstID returns the first Bill ID from the query.
-// Returns a *NotFoundError when no Bill ID was found.
-func (_q *BillQuery) FirstID(ctx context.Context) (id int, err error) {
+// FirstID returns the first Invoice ID from the query.
+// Returns a *NotFoundError when no Invoice ID was found.
+func (_q *InvoiceQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &NotFoundError{bill.Label}
+		err = &NotFoundError{invoice.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *BillQuery) FirstIDX(ctx context.Context) int {
+func (_q *InvoiceQuery) FirstIDX(ctx context.Context) int {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -176,10 +151,10 @@ func (_q *BillQuery) FirstIDX(ctx context.Context) int {
 	return id
 }
 
-// Only returns a single Bill entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when more than one Bill entity is found.
-// Returns a *NotFoundError when no Bill entities are found.
-func (_q *BillQuery) Only(ctx context.Context) (*Bill, error) {
+// Only returns a single Invoice entity found by the query, ensuring it only returns one.
+// Returns a *NotSingularError when more than one Invoice entity is found.
+// Returns a *NotFoundError when no Invoice entities are found.
+func (_q *InvoiceQuery) Only(ctx context.Context) (*Invoice, error) {
 	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
@@ -188,14 +163,14 @@ func (_q *BillQuery) Only(ctx context.Context) (*Bill, error) {
 	case 1:
 		return nodes[0], nil
 	case 0:
-		return nil, &NotFoundError{bill.Label}
+		return nil, &NotFoundError{invoice.Label}
 	default:
-		return nil, &NotSingularError{bill.Label}
+		return nil, &NotSingularError{invoice.Label}
 	}
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (_q *BillQuery) OnlyX(ctx context.Context) *Bill {
+func (_q *InvoiceQuery) OnlyX(ctx context.Context) *Invoice {
 	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
@@ -203,10 +178,10 @@ func (_q *BillQuery) OnlyX(ctx context.Context) *Bill {
 	return node
 }
 
-// OnlyID is like Only, but returns the only Bill ID in the query.
-// Returns a *NotSingularError when more than one Bill ID is found.
+// OnlyID is like Only, but returns the only Invoice ID in the query.
+// Returns a *NotSingularError when more than one Invoice ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *BillQuery) OnlyID(ctx context.Context) (id int, err error) {
+func (_q *InvoiceQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
@@ -215,15 +190,15 @@ func (_q *BillQuery) OnlyID(ctx context.Context) (id int, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &NotFoundError{bill.Label}
+		err = &NotFoundError{invoice.Label}
 	default:
-		err = &NotSingularError{bill.Label}
+		err = &NotSingularError{invoice.Label}
 	}
 	return
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *BillQuery) OnlyIDX(ctx context.Context) int {
+func (_q *InvoiceQuery) OnlyIDX(ctx context.Context) int {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -231,18 +206,18 @@ func (_q *BillQuery) OnlyIDX(ctx context.Context) int {
 	return id
 }
 
-// All executes the query and returns a list of Bills.
-func (_q *BillQuery) All(ctx context.Context) ([]*Bill, error) {
+// All executes the query and returns a list of Invoices.
+func (_q *InvoiceQuery) All(ctx context.Context) ([]*Invoice, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	qr := querierAll[[]*Bill, *BillQuery]()
-	return withInterceptors[[]*Bill](ctx, _q, qr, _q.inters)
+	qr := querierAll[[]*Invoice, *InvoiceQuery]()
+	return withInterceptors[[]*Invoice](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (_q *BillQuery) AllX(ctx context.Context) []*Bill {
+func (_q *InvoiceQuery) AllX(ctx context.Context) []*Invoice {
 	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
@@ -250,20 +225,20 @@ func (_q *BillQuery) AllX(ctx context.Context) []*Bill {
 	return nodes
 }
 
-// IDs executes the query and returns a list of Bill IDs.
-func (_q *BillQuery) IDs(ctx context.Context) (ids []int, err error) {
+// IDs executes the query and returns a list of Invoice IDs.
+func (_q *InvoiceQuery) IDs(ctx context.Context) (ids []int, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
-	if err = _q.Select(bill.FieldID).Scan(ctx, &ids); err != nil {
+	if err = _q.Select(invoice.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *BillQuery) IDsX(ctx context.Context) []int {
+func (_q *InvoiceQuery) IDsX(ctx context.Context) []int {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -272,16 +247,16 @@ func (_q *BillQuery) IDsX(ctx context.Context) []int {
 }
 
 // Count returns the count of the given query.
-func (_q *BillQuery) Count(ctx context.Context) (int, error) {
+func (_q *InvoiceQuery) Count(ctx context.Context) (int, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, _q, querierCount[*BillQuery](), _q.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*InvoiceQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (_q *BillQuery) CountX(ctx context.Context) int {
+func (_q *InvoiceQuery) CountX(ctx context.Context) int {
 	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
@@ -290,7 +265,7 @@ func (_q *BillQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (_q *BillQuery) Exist(ctx context.Context) (bool, error) {
+func (_q *InvoiceQuery) Exist(ctx context.Context) (bool, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
 	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
@@ -303,7 +278,7 @@ func (_q *BillQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (_q *BillQuery) ExistX(ctx context.Context) bool {
+func (_q *InvoiceQuery) ExistX(ctx context.Context) bool {
 	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
@@ -311,21 +286,20 @@ func (_q *BillQuery) ExistX(ctx context.Context) bool {
 	return exist
 }
 
-// Clone returns a duplicate of the BillQuery builder, including all associated steps. It can be
+// Clone returns a duplicate of the InvoiceQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (_q *BillQuery) Clone() *BillQuery {
+func (_q *InvoiceQuery) Clone() *InvoiceQuery {
 	if _q == nil {
 		return nil
 	}
-	return &BillQuery{
-		config:          _q.config,
-		ctx:             _q.ctx.Clone(),
-		order:           append([]bill.OrderOption{}, _q.order...),
-		inters:          append([]Interceptor{}, _q.inters...),
-		predicates:      append([]predicate.Bill{}, _q.predicates...),
-		withTenant:      _q.withTenant.Clone(),
-		withServerLease: _q.withServerLease.Clone(),
-		withInvoices:    _q.withInvoices.Clone(),
+	return &InvoiceQuery{
+		config:     _q.config,
+		ctx:        _q.ctx.Clone(),
+		order:      append([]invoice.OrderOption{}, _q.order...),
+		inters:     append([]Interceptor{}, _q.inters...),
+		predicates: append([]predicate.Invoice{}, _q.predicates...),
+		withTenant: _q.withTenant.Clone(),
+		withBill:   _q.withBill.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -334,7 +308,7 @@ func (_q *BillQuery) Clone() *BillQuery {
 
 // WithTenant tells the query-builder to eager-load the nodes that are connected to
 // the "tenant" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *BillQuery) WithTenant(opts ...func(*TenantQuery)) *BillQuery {
+func (_q *InvoiceQuery) WithTenant(opts ...func(*TenantQuery)) *InvoiceQuery {
 	query := (&TenantClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
@@ -343,25 +317,14 @@ func (_q *BillQuery) WithTenant(opts ...func(*TenantQuery)) *BillQuery {
 	return _q
 }
 
-// WithServerLease tells the query-builder to eager-load the nodes that are connected to
-// the "server_lease" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *BillQuery) WithServerLease(opts ...func(*ServerLeaseQuery)) *BillQuery {
-	query := (&ServerLeaseClient{config: _q.config}).Query()
+// WithBill tells the query-builder to eager-load the nodes that are connected to
+// the "bill" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *InvoiceQuery) WithBill(opts ...func(*BillQuery)) *InvoiceQuery {
+	query := (&BillClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withServerLease = query
-	return _q
-}
-
-// WithInvoices tells the query-builder to eager-load the nodes that are connected to
-// the "invoices" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *BillQuery) WithInvoices(opts ...func(*InvoiceQuery)) *BillQuery {
-	query := (&InvoiceClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withInvoices = query
+	_q.withBill = query
 	return _q
 }
 
@@ -375,15 +338,15 @@ func (_q *BillQuery) WithInvoices(opts ...func(*InvoiceQuery)) *BillQuery {
 //		Count int `json:"count,omitempty"`
 //	}
 //
-//	client.Bill.Query().
-//		GroupBy(bill.FieldCreatedAt).
+//	client.Invoice.Query().
+//		GroupBy(invoice.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-func (_q *BillQuery) GroupBy(field string, fields ...string) *BillGroupBy {
+func (_q *InvoiceQuery) GroupBy(field string, fields ...string) *InvoiceGroupBy {
 	_q.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &BillGroupBy{build: _q}
+	grbuild := &InvoiceGroupBy{build: _q}
 	grbuild.flds = &_q.ctx.Fields
-	grbuild.label = bill.Label
+	grbuild.label = invoice.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
 }
@@ -397,23 +360,23 @@ func (_q *BillQuery) GroupBy(field string, fields ...string) *BillGroupBy {
 //		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
-//	client.Bill.Query().
-//		Select(bill.FieldCreatedAt).
+//	client.Invoice.Query().
+//		Select(invoice.FieldCreatedAt).
 //		Scan(ctx, &v)
-func (_q *BillQuery) Select(fields ...string) *BillSelect {
+func (_q *InvoiceQuery) Select(fields ...string) *InvoiceSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
-	sbuild := &BillSelect{BillQuery: _q}
-	sbuild.label = bill.Label
+	sbuild := &InvoiceSelect{InvoiceQuery: _q}
+	sbuild.label = invoice.Label
 	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
-// Aggregate returns a BillSelect configured with the given aggregations.
-func (_q *BillQuery) Aggregate(fns ...AggregateFunc) *BillSelect {
+// Aggregate returns a InvoiceSelect configured with the given aggregations.
+func (_q *InvoiceQuery) Aggregate(fns ...AggregateFunc) *InvoiceSelect {
 	return _q.Select().Aggregate(fns...)
 }
 
-func (_q *BillQuery) prepareQuery(ctx context.Context) error {
+func (_q *InvoiceQuery) prepareQuery(ctx context.Context) error {
 	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
@@ -425,7 +388,7 @@ func (_q *BillQuery) prepareQuery(ctx context.Context) error {
 		}
 	}
 	for _, f := range _q.ctx.Fields {
-		if !bill.ValidColumn(f) {
+		if !invoice.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
@@ -439,21 +402,20 @@ func (_q *BillQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (_q *BillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Bill, error) {
+func (_q *InvoiceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Invoice, error) {
 	var (
-		nodes       = []*Bill{}
+		nodes       = []*Invoice{}
 		_spec       = _q.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [2]bool{
 			_q.withTenant != nil,
-			_q.withServerLease != nil,
-			_q.withInvoices != nil,
+			_q.withBill != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
-		return (*Bill).scanValues(nil, columns)
+		return (*Invoice).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &Bill{config: _q.config}
+		node := &Invoice{config: _q.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
@@ -469,29 +431,22 @@ func (_q *BillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Bill, e
 	}
 	if query := _q.withTenant; query != nil {
 		if err := _q.loadTenant(ctx, query, nodes, nil,
-			func(n *Bill, e *Tenant) { n.Edges.Tenant = e }); err != nil {
+			func(n *Invoice, e *Tenant) { n.Edges.Tenant = e }); err != nil {
 			return nil, err
 		}
 	}
-	if query := _q.withServerLease; query != nil {
-		if err := _q.loadServerLease(ctx, query, nodes, nil,
-			func(n *Bill, e *ServerLease) { n.Edges.ServerLease = e }); err != nil {
-			return nil, err
-		}
-	}
-	if query := _q.withInvoices; query != nil {
-		if err := _q.loadInvoices(ctx, query, nodes,
-			func(n *Bill) { n.Edges.Invoices = []*Invoice{} },
-			func(n *Bill, e *Invoice) { n.Edges.Invoices = append(n.Edges.Invoices, e) }); err != nil {
+	if query := _q.withBill; query != nil {
+		if err := _q.loadBill(ctx, query, nodes, nil,
+			func(n *Invoice, e *Bill) { n.Edges.Bill = e }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (_q *BillQuery) loadTenant(ctx context.Context, query *TenantQuery, nodes []*Bill, init func(*Bill), assign func(*Bill, *Tenant)) error {
+func (_q *InvoiceQuery) loadTenant(ctx context.Context, query *TenantQuery, nodes []*Invoice, init func(*Invoice), assign func(*Invoice, *Tenant)) error {
 	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*Bill)
+	nodeids := make(map[int][]*Invoice)
 	for i := range nodes {
 		fk := nodes[i].TenantID
 		if _, ok := nodeids[fk]; !ok {
@@ -518,14 +473,11 @@ func (_q *BillQuery) loadTenant(ctx context.Context, query *TenantQuery, nodes [
 	}
 	return nil
 }
-func (_q *BillQuery) loadServerLease(ctx context.Context, query *ServerLeaseQuery, nodes []*Bill, init func(*Bill), assign func(*Bill, *ServerLease)) error {
+func (_q *InvoiceQuery) loadBill(ctx context.Context, query *BillQuery, nodes []*Invoice, init func(*Invoice), assign func(*Invoice, *Bill)) error {
 	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*Bill)
+	nodeids := make(map[int][]*Invoice)
 	for i := range nodes {
-		if nodes[i].RelatedResourceID == nil {
-			continue
-		}
-		fk := *nodes[i].RelatedResourceID
+		fk := nodes[i].BillID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -534,7 +486,7 @@ func (_q *BillQuery) loadServerLease(ctx context.Context, query *ServerLeaseQuer
 	if len(ids) == 0 {
 		return nil
 	}
-	query.Where(serverlease.IDIn(ids...))
+	query.Where(bill.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
@@ -542,7 +494,7 @@ func (_q *BillQuery) loadServerLease(ctx context.Context, query *ServerLeaseQuer
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "related_resource_id" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "bill_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -550,38 +502,8 @@ func (_q *BillQuery) loadServerLease(ctx context.Context, query *ServerLeaseQuer
 	}
 	return nil
 }
-func (_q *BillQuery) loadInvoices(ctx context.Context, query *InvoiceQuery, nodes []*Bill, init func(*Bill), assign func(*Bill, *Invoice)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int]*Bill)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(invoice.FieldBillID)
-	}
-	query.Where(predicate.Invoice(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(bill.InvoicesColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.BillID
-		node, ok := nodeids[fk]
-		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "bill_id" returned %v for node %v`, fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
 
-func (_q *BillQuery) sqlCount(ctx context.Context) (int, error) {
+func (_q *InvoiceQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
 	_spec.Node.Columns = _q.ctx.Fields
 	if len(_q.ctx.Fields) > 0 {
@@ -590,8 +512,8 @@ func (_q *BillQuery) sqlCount(ctx context.Context) (int, error) {
 	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (_q *BillQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(bill.Table, bill.Columns, sqlgraph.NewFieldSpec(bill.FieldID, field.TypeInt))
+func (_q *InvoiceQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := sqlgraph.NewQuerySpec(invoice.Table, invoice.Columns, sqlgraph.NewFieldSpec(invoice.FieldID, field.TypeInt))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
@@ -600,17 +522,17 @@ func (_q *BillQuery) querySpec() *sqlgraph.QuerySpec {
 	}
 	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, bill.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, invoice.FieldID)
 		for i := range fields {
-			if fields[i] != bill.FieldID {
+			if fields[i] != invoice.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
 		}
 		if _q.withTenant != nil {
-			_spec.Node.AddColumnOnce(bill.FieldTenantID)
+			_spec.Node.AddColumnOnce(invoice.FieldTenantID)
 		}
-		if _q.withServerLease != nil {
-			_spec.Node.AddColumnOnce(bill.FieldRelatedResourceID)
+		if _q.withBill != nil {
+			_spec.Node.AddColumnOnce(invoice.FieldBillID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {
@@ -636,12 +558,12 @@ func (_q *BillQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (_q *BillQuery) sqlQuery(ctx context.Context) *sql.Selector {
+func (_q *InvoiceQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(_q.driver.Dialect())
-	t1 := builder.Table(bill.Table)
+	t1 := builder.Table(invoice.Table)
 	columns := _q.ctx.Fields
 	if len(columns) == 0 {
-		columns = bill.Columns
+		columns = invoice.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if _q.sql != nil {
@@ -668,28 +590,28 @@ func (_q *BillQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	return selector
 }
 
-// BillGroupBy is the group-by builder for Bill entities.
-type BillGroupBy struct {
+// InvoiceGroupBy is the group-by builder for Invoice entities.
+type InvoiceGroupBy struct {
 	selector
-	build *BillQuery
+	build *InvoiceQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (_g *BillGroupBy) Aggregate(fns ...AggregateFunc) *BillGroupBy {
+func (_g *InvoiceGroupBy) Aggregate(fns ...AggregateFunc) *InvoiceGroupBy {
 	_g.fns = append(_g.fns, fns...)
 	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_g *BillGroupBy) Scan(ctx context.Context, v any) error {
+func (_g *InvoiceGroupBy) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
 	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*BillQuery, *BillGroupBy](ctx, _g.build, _g, _g.build.inters, v)
+	return scanWithInterceptors[*InvoiceQuery, *InvoiceGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (_g *BillGroupBy) sqlScan(ctx context.Context, root *BillQuery, v any) error {
+func (_g *InvoiceGroupBy) sqlScan(ctx context.Context, root *InvoiceQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
 	aggregation := make([]string, 0, len(_g.fns))
 	for _, fn := range _g.fns {
@@ -716,28 +638,28 @@ func (_g *BillGroupBy) sqlScan(ctx context.Context, root *BillQuery, v any) erro
 	return sql.ScanSlice(rows, v)
 }
 
-// BillSelect is the builder for selecting fields of Bill entities.
-type BillSelect struct {
-	*BillQuery
+// InvoiceSelect is the builder for selecting fields of Invoice entities.
+type InvoiceSelect struct {
+	*InvoiceQuery
 	selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (_s *BillSelect) Aggregate(fns ...AggregateFunc) *BillSelect {
+func (_s *InvoiceSelect) Aggregate(fns ...AggregateFunc) *InvoiceSelect {
 	_s.fns = append(_s.fns, fns...)
 	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_s *BillSelect) Scan(ctx context.Context, v any) error {
+func (_s *InvoiceSelect) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
 	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*BillQuery, *BillSelect](ctx, _s.BillQuery, _s, _s.inters, v)
+	return scanWithInterceptors[*InvoiceQuery, *InvoiceSelect](ctx, _s.InvoiceQuery, _s, _s.inters, v)
 }
 
-func (_s *BillSelect) sqlScan(ctx context.Context, root *BillQuery, v any) error {
+func (_s *InvoiceSelect) sqlScan(ctx context.Context, root *InvoiceQuery, v any) error {
 	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(_s.fns))
 	for _, fn := range _s.fns {

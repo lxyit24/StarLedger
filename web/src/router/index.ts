@@ -9,6 +9,7 @@ const routeModuleMap: Record<string, string> = {
   '/app/contracts': 'contract',
   '/app/tasks': 'task',
   '/app/reports': 'report',
+  '/app/invoices': 'invoice',
 }
 
 const routes = [
@@ -82,6 +83,12 @@ const routes = [
         name: 'Market',
         component: () => import('../views/market/index.vue'),
         meta: { title: '模块市场' },
+      },
+      {
+        path: 'invoices',
+        name: 'Invoices',
+        component: () => import('../views/invoice/index.vue'),
+        meta: { title: '发票管理' },
       },
       {
         path: 'system/users',

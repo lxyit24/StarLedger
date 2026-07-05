@@ -26,8 +26,8 @@
         <el-table-column prop="amount" label="金额(元)" width="100" align="right">
           <template #default="{ row }">¥{{ row.amount?.toFixed(2) }}</template>
         </el-table-column>
-        <el-table-column prop="start_date" label="开始日期" width="110" />
-        <el-table-column prop="end_date" label="结束日期" width="110" />
+        <el-table-column prop="start_date" label="开始日期" width="110"><template #default="{ row }">{{ formatDate(row.start_date) }}</template></el-table-column>
+        <el-table-column prop="end_date" label="结束日期" width="110"><template #default="{ row }">{{ formatDate(row.end_date) }}</template></el-table-column>
         <el-table-column prop="status" label="状态" width="80">
           <template #default="{ row }">
             <el-tag :type="statusType(row.status)" size="small">{{ statusText(row.status) }}</el-tag>
@@ -101,6 +101,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, type FormInstance } from 'element-plus'
 import { listContracts, createContract, updateContract, deleteContract } from '../../api/contract'
+import { formatDate } from '../../utils/format'
 
 const loading = ref(false)
 const tableData = ref<any[]>([])
