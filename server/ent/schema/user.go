@@ -37,6 +37,8 @@ func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("tenant", Tenant.Type).Ref("users").Unique().Required().Field("tenant_id"),
 		edge.From("roles", Role.Type).Ref("users"),
+		edge.To("assigned_tasks", Task.Type),
+		edge.To("created_tasks", Task.Type),
 	}
 }
 
