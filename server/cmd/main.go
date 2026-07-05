@@ -84,6 +84,8 @@ func main() {
 	registry := module.NewRegistry()
 	registry.Register(module.NewServerLeaseModule())
 	registry.Register(module.NewBillingModule())
+	registry.Register(module.NewContractModule())
+	registry.Register(module.NewTaskModule())
 
 	if err := registry.InitAll(client); err != nil {
 		pkg.Logger.Fatal("failed to init modules", zap.Error(err))
