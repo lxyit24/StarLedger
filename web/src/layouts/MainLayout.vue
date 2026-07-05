@@ -25,6 +25,14 @@
           <el-icon><Document /></el-icon>
           <span>账单管理</span>
         </el-menu-item>
+        <el-menu-item v-if="appStore.isModuleEnabled('contract')" index="/contracts">
+          <el-icon><Tickets /></el-icon>
+          <span>合同管理</span>
+        </el-menu-item>
+        <el-menu-item v-if="appStore.isModuleEnabled('task')" index="/tasks">
+          <el-icon><List /></el-icon>
+          <span>任务协作</span>
+        </el-menu-item>
         <el-menu-item index="/market">
           <el-icon><ShoppingCart /></el-icon>
           <span>模块市场</span>
@@ -67,7 +75,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import { useAppStore } from '../stores/app'
-import { Odometer, Monitor, Document, Setting, Fold, Expand, ShoppingCart } from '@element-plus/icons-vue'
+import { Odometer, Monitor, Document, Setting, Fold, Expand, ShoppingCart, Tickets, List } from '@element-plus/icons-vue'
 
 const isCollapse = ref(false)
 const userStore = useUserStore()
@@ -87,12 +95,43 @@ function handleLogout() {
 </script>
 
 <style scoped>
-.main-layout { height: 100vh; }
-.sidebar { background-color: #304156; transition: width 0.3s; overflow: hidden; }
-.logo { height: 60px; display: flex; align-items: center; justify-content: center; color: #fff; }
-.logo h2 { margin: 0; font-size: 18px; }
-.header { display: flex; align-items: center; border-bottom: 1px solid #eee; padding: 0 20px; }
-.collapse-btn { font-size: 20px; cursor: pointer; margin-right: 16px; }
-.header-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
-.main-content { background-color: #f5f7fa; }
+.main-layout {
+  height: 100vh;
+}
+.sidebar {
+  background-color: #304156;
+  transition: width 0.3s;
+  overflow: hidden;
+}
+.logo {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+.logo h2 {
+  margin: 0;
+  font-size: 18px;
+}
+.header {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  padding: 0 20px;
+}
+.collapse-btn {
+  font-size: 20px;
+  cursor: pointer;
+  margin-right: 16px;
+}
+.header-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.main-content {
+  background-color: #f5f7fa;
+}
 </style>

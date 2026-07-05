@@ -10,6 +10,12 @@ import (
 	"starledger/internal/pkg"
 )
 
+// Module type to tenant type mapping
+var moduleTenantTypeMap = map[string][]string{
+	"contract": {"enterprise"},
+	"task":     {"team"},
+}
+
 // ModuleAccess checks if the current tenant has enabled the given module.
 // Core modules (billing) are always accessible. This middleware should be used after JWTAuth + TenantIsolation.
 func ModuleAccess(client *ent.Client, moduleName string) gin.HandlerFunc {
@@ -18,6 +24,29 @@ func ModuleAccess(client *ent.Client, moduleName string) gin.HandlerFunc {
 		if tenantID == 0 {
 			c.Next()
 			return
+		}
+
+		// Check if this module has tenant type restrictions
+		if allowedTypes, ok := moduleTenantTypeMap[moduleName]; ok {
+			t, err := client.Tenant.Get(c.Request.Context(), tenantID)
+			if err != nil {
+				pkg.Fail(c, http.StatusInternalServerError, "租户信息获取失败")
+				c.Abort()
+				return
+			}
+
+			allowed := false
+			for _, typ := range allowedTypes {
+				if string(t.Type) == typ {
+					allowed = true
+					break
+				}
+			}
+			if !allowed {
+				pkg.Fail(c, http.StatusForbidden, "该模块仅对特定租户类型可用")
+				c.Abort()
+				return
+			}
 		}
 
 		// Check if the module is enabled for this tenant

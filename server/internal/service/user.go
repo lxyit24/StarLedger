@@ -90,6 +90,11 @@ func (s *UserService) GetProfile(ctx context.Context, userID int) (*ent.User, er
 	return s.client.User.Get(ctx, userID)
 }
 
+// GetTenant returns a tenant by ID.
+func (s *UserService) GetTenant(ctx context.Context, tenantID int) (*ent.Tenant, error) {
+	return s.client.Tenant.Get(ctx, tenantID)
+}
+
 // LoadUserRoles loads user roles and permissions into context-friendly format.
 func (s *UserService) GetUserRolesAndPerms(ctx context.Context, userID int) ([]string, []string, error) {
 	u, err := s.client.User.Query().

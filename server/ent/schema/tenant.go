@@ -23,6 +23,10 @@ func (Tenant) Mixin() []ent.Mixin {
 func (Tenant) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").NotEmpty().Comment("租户名称"),
+		field.Enum("type").
+			Values("personal", "enterprise", "team").
+			Default("personal").
+			Comment("租户类型: personal/enterprise/team"),
 		field.String("contact").Default("").Comment("联系人"),
 		field.String("phone").Default("").Comment("联系电话"),
 		field.String("email").Default("").Comment("联系邮箱"),
@@ -38,6 +42,8 @@ func (Tenant) Edges() []ent.Edge {
 		edge.To("server_leases", ServerLease.Type),
 		edge.To("bills", Bill.Type),
 		edge.To("modules", TenantModule.Type),
+		edge.To("contracts", Contract.Type),
+		edge.To("tasks", Task.Type),
 	}
 }
 

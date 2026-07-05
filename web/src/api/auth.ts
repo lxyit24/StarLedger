@@ -6,6 +6,7 @@ export function login(data: { username: string; password: string }) {
 
 export function register(data: {
   tenant_name: string
+  tenant_type: string
   username: string
   password: string
   real_name: string

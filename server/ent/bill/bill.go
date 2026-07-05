@@ -11,35 +11,80 @@ import (
 )
 
 const (
+	// Label holds the string label denoting the bill type in the database.
 	Label = "bill"
+	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
+	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// FieldTenantID holds the string denoting the tenant_id field in the database.
 	FieldTenantID = "tenant_id"
+	// FieldBillNo holds the string denoting the bill_no field in the database.
 	FieldBillNo = "bill_no"
+	// FieldBillType holds the string denoting the bill_type field in the database.
 	FieldBillType = "bill_type"
+	// FieldRelatedResourceID holds the string denoting the related_resource_id field in the database.
 	FieldRelatedResourceID = "related_resource_id"
+	// FieldAmount holds the string denoting the amount field in the database.
 	FieldAmount = "amount"
+	// FieldBillDate holds the string denoting the bill_date field in the database.
 	FieldBillDate = "bill_date"
+	// FieldDueDate holds the string denoting the due_date field in the database.
 	FieldDueDate = "due_date"
+	// FieldPaidDate holds the string denoting the paid_date field in the database.
 	FieldPaidDate = "paid_date"
+	// FieldPaymentStatus holds the string denoting the payment_status field in the database.
 	FieldPaymentStatus = "payment_status"
+	// FieldPaymentMethod holds the string denoting the payment_method field in the database.
 	FieldPaymentMethod = "payment_method"
+	// FieldInvoiceNo holds the string denoting the invoice_no field in the database.
 	FieldInvoiceNo = "invoice_no"
+	// FieldRemark holds the string denoting the remark field in the database.
 	FieldRemark = "remark"
+	// EdgeTenant holds the string denoting the tenant edge name in mutations.
 	EdgeTenant = "tenant"
+	// EdgeServerLease holds the string denoting the server_lease edge name in mutations.
 	EdgeServerLease = "server_lease"
+	// Table holds the table name of the bill in the database.
 	Table = "bills"
+	// TenantTable is the table that holds the tenant relation/edge.
 	TenantTable = "bills"
+	// TenantInverseTable is the table name for the Tenant entity.
+	// It exists in this package in order to avoid circular dependency with the "tenant" package.
 	TenantInverseTable = "tenants"
+	// TenantColumn is the table column denoting the tenant relation/edge.
 	TenantColumn = "tenant_id"
+	// ServerLeaseTable is the table that holds the server_lease relation/edge.
 	ServerLeaseTable = "bills"
+	// ServerLeaseInverseTable is the table name for the ServerLease entity.
+	// It exists in this package in order to avoid circular dependency with the "serverlease" package.
 	ServerLeaseInverseTable = "server_leases"
+	// ServerLeaseColumn is the table column denoting the server_lease relation/edge.
 	ServerLeaseColumn = "related_resource_id"
 )
 
-var Columns = []string{FieldID, FieldCreatedAt, FieldUpdatedAt, FieldTenantID, FieldBillNo, FieldBillType, FieldRelatedResourceID, FieldAmount, FieldBillDate, FieldDueDate, FieldPaidDate, FieldPaymentStatus, FieldPaymentMethod, FieldInvoiceNo, FieldRemark}
+// Columns holds all SQL columns for bill fields.
+var Columns = []string{
+	FieldID,
+	FieldCreatedAt,
+	FieldUpdatedAt,
+	FieldTenantID,
+	FieldBillNo,
+	FieldBillType,
+	FieldRelatedResourceID,
+	FieldAmount,
+	FieldBillDate,
+	FieldDueDate,
+	FieldPaidDate,
+	FieldPaymentStatus,
+	FieldPaymentMethod,
+	FieldInvoiceNo,
+	FieldRemark,
+}
 
+// ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
@@ -50,27 +95,47 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
+	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
 	DefaultUpdatedAt func() time.Time
+	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
+	// BillNoValidator is a validator for the "bill_no" field. It is called by the builders before save.
 	BillNoValidator func(string) error
+	// BillTypeValidator is a validator for the "bill_type" field. It is called by the builders before save.
 	BillTypeValidator func(string) error
+	// DefaultAmount holds the default value on creation for the "amount" field.
 	DefaultAmount float64
+	// DefaultBillDate holds the default value on creation for the "bill_date" field.
 	DefaultBillDate func() time.Time
+	// DefaultPaymentMethod holds the default value on creation for the "payment_method" field.
 	DefaultPaymentMethod string
+	// DefaultInvoiceNo holds the default value on creation for the "invoice_no" field.
 	DefaultInvoiceNo string
+	// DefaultRemark holds the default value on creation for the "remark" field.
 	DefaultRemark string
 )
 
+// PaymentStatus defines the type for the "payment_status" enum field.
 type PaymentStatus string
+
+// PaymentStatusPending is the default value of the PaymentStatus enum.
 const DefaultPaymentStatus = PaymentStatusPending
+
+// PaymentStatus values.
 const (
 	PaymentStatusPending   PaymentStatus = "pending"
 	PaymentStatusPaid      PaymentStatus = "paid"
 	PaymentStatusOverdue   PaymentStatus = "overdue"
 	PaymentStatusCancelled PaymentStatus = "cancelled"
 )
-func (ps PaymentStatus) String() string { return string(ps) }
+
+func (ps PaymentStatus) String() string {
+	return string(ps)
+}
+
+// PaymentStatusValidator is a validator for the "payment_status" field enum values. It is called by the builders before save.
 func PaymentStatusValidator(ps PaymentStatus) error {
 	switch ps {
 	case PaymentStatusPending, PaymentStatusPaid, PaymentStatusOverdue, PaymentStatusCancelled:
@@ -80,31 +145,108 @@ func PaymentStatusValidator(ps PaymentStatus) error {
 	}
 }
 
+// OrderOption defines the ordering options for the Bill queries.
 type OrderOption func(*sql.Selector)
-func ByID(opts ...sql.OrderTermOption) OrderOption { return sql.OrderByField(FieldID, opts...).ToFunc() }
-func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption { return sql.OrderByField(FieldCreatedAt, opts...).ToFunc() }
-func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption { return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc() }
-func ByTenantID(opts ...sql.OrderTermOption) OrderOption { return sql.OrderByField(FieldTenantID, opts...).ToFunc() }
-func ByBillNo(opts ...sql.OrderTermOption) OrderOption { return sql.OrderByField(FieldBillNo, opts...).ToFunc() }
-func ByBillType(opts ...sql.OrderTermOption) OrderOption { return sql.OrderByField(FieldBillType, opts...).ToFunc() }
-func ByRelatedResourceID(opts ...sql.OrderTermOption) OrderOption { return sql.OrderByField(FieldRelatedResourceID, opts...).ToFunc() }
-func ByAmount(opts ...sql.OrderTermOption) OrderOption { return sql.OrderByField(FieldAmount, opts...).ToFunc() }
-func ByBillDate(opts ...sql.OrderTermOption) OrderOption { return sql.OrderByField(FieldBillDate, opts...).ToFunc() }
-func ByDueDate(opts ...sql.OrderTermOption) OrderOption { return sql.OrderByField(FieldDueDate, opts...).ToFunc() }
-func ByPaidDate(opts ...sql.OrderTermOption) OrderOption { return sql.OrderByField(FieldPaidDate, opts...).ToFunc() }
-func ByPaymentStatus(opts ...sql.OrderTermOption) OrderOption { return sql.OrderByField(FieldPaymentStatus, opts...).ToFunc() }
-func ByPaymentMethod(opts ...sql.OrderTermOption) OrderOption { return sql.OrderByField(FieldPaymentMethod, opts...).ToFunc() }
-func ByInvoiceNo(opts ...sql.OrderTermOption) OrderOption { return sql.OrderByField(FieldInvoiceNo, opts...).ToFunc() }
-func ByRemark(opts ...sql.OrderTermOption) OrderOption { return sql.OrderByField(FieldRemark, opts...).ToFunc() }
-func ByTenantField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) { sqlgraph.OrderByNeighborTerms(s, newTenantStep(), sql.OrderByField(field, opts...)) }
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
+
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByUpdatedAt orders the results by the updated_at field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByTenantID orders the results by the tenant_id field.
+func ByTenantID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTenantID, opts...).ToFunc()
+}
+
+// ByBillNo orders the results by the bill_no field.
+func ByBillNo(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBillNo, opts...).ToFunc()
+}
+
+// ByBillType orders the results by the bill_type field.
+func ByBillType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBillType, opts...).ToFunc()
+}
+
+// ByRelatedResourceID orders the results by the related_resource_id field.
+func ByRelatedResourceID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRelatedResourceID, opts...).ToFunc()
+}
+
+// ByAmount orders the results by the amount field.
+func ByAmount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAmount, opts...).ToFunc()
+}
+
+// ByBillDate orders the results by the bill_date field.
+func ByBillDate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBillDate, opts...).ToFunc()
+}
+
+// ByDueDate orders the results by the due_date field.
+func ByDueDate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDueDate, opts...).ToFunc()
+}
+
+// ByPaidDate orders the results by the paid_date field.
+func ByPaidDate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPaidDate, opts...).ToFunc()
+}
+
+// ByPaymentStatus orders the results by the payment_status field.
+func ByPaymentStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPaymentStatus, opts...).ToFunc()
+}
+
+// ByPaymentMethod orders the results by the payment_method field.
+func ByPaymentMethod(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPaymentMethod, opts...).ToFunc()
+}
+
+// ByInvoiceNo orders the results by the invoice_no field.
+func ByInvoiceNo(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldInvoiceNo, opts...).ToFunc()
+}
+
+// ByRemark orders the results by the remark field.
+func ByRemark(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRemark, opts...).ToFunc()
+}
+
+// ByTenantField orders the results by tenant field.
+func ByTenantField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTenantStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByServerLeaseField orders the results by server_lease field.
 func ByServerLeaseField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) { sqlgraph.OrderByNeighborTerms(s, newServerLeaseStep(), sql.OrderByField(field, opts...)) }
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newServerLeaseStep(), sql.OrderByField(field, opts...))
+	}
 }
 func newTenantStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(sqlgraph.From(Table, FieldID), sqlgraph.To(TenantInverseTable, FieldID), sqlgraph.Edge(sqlgraph.M2O, true, TenantTable, TenantColumn))
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TenantInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, TenantTable, TenantColumn),
+	)
 }
 func newServerLeaseStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(sqlgraph.From(Table, FieldID), sqlgraph.To(ServerLeaseInverseTable, FieldID), sqlgraph.Edge(sqlgraph.M2O, true, ServerLeaseTable, ServerLeaseColumn))
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ServerLeaseInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ServerLeaseTable, ServerLeaseColumn),
+	)
 }

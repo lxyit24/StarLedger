@@ -33,6 +33,13 @@ func (h *Handler) Login(c *gin.Context) {
 		return
 	}
 
+	// Get tenant to retrieve type
+	tenant, err := h.userSvc.GetTenant(c.Request.Context(), u.TenantID)
+	if err != nil {
+		pkg.Fail(c, http.StatusInternalServerError, "获取租户信息失败")
+		return
+	}
+
 	token, err := middleware.GenerateToken(u.ID, u.TenantID, u.Username)
 	if err != nil {
 		pkg.Fail(c, http.StatusInternalServerError, "生成令牌失败")
@@ -40,10 +47,11 @@ func (h *Handler) Login(c *gin.Context) {
 	}
 
 	pkg.Success(c, model.LoginResp{
-		Token:    token,
-		UserID:   u.ID,
-		TenantID: u.TenantID,
-		Username: u.Username,
+		Token:      token,
+		UserID:     u.ID,
+		TenantID:   u.TenantID,
+		TenantType: string(tenant.Type),
+		Username:   u.Username,
 	})
 }
 
@@ -56,9 +64,16 @@ func (h *Handler) Register(c *gin.Context) {
 
 	u, err := h.authSvc.Register(c.Request.Context(),
 		req.TenantName, req.Contact, req.Phone, req.Email,
-		req.Username, req.Password, req.RealName)
+		req.Username, req.Password, req.RealName, req.TenantType)
 	if err != nil {
 		pkg.Fail(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// Get tenant to retrieve type
+	tenant, err := h.userSvc.GetTenant(c.Request.Context(), u.TenantID)
+	if err != nil {
+		pkg.Fail(c, http.StatusInternalServerError, "获取租户信息失败")
 		return
 	}
 
@@ -69,10 +84,11 @@ func (h *Handler) Register(c *gin.Context) {
 	}
 
 	pkg.Success(c, model.LoginResp{
-		Token:    token,
-		UserID:   u.ID,
-		TenantID: u.TenantID,
-		Username: u.Username,
+		Token:      token,
+		UserID:     u.ID,
+		TenantID:   u.TenantID,
+		TenantType: string(tenant.Type),
+		Username:   u.Username,
 	})
 }
 
