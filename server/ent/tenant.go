@@ -57,9 +57,11 @@ type TenantEdges struct {
 	Tasks []*Task `json:"tasks,omitempty"`
 	// AuditLogs holds the value of the audit_logs edge.
 	AuditLogs []*AuditLog `json:"audit_logs,omitempty"`
+	// Invoices holds the value of the invoices edge.
+	Invoices []*Invoice `json:"invoices,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [8]bool
+	loadedTypes [9]bool
 }
 
 // UsersOrErr returns the Users value or an error if the edge
@@ -132,6 +134,15 @@ func (e TenantEdges) AuditLogsOrErr() ([]*AuditLog, error) {
 		return e.AuditLogs, nil
 	}
 	return nil, &NotLoadedError{edge: "audit_logs"}
+}
+
+// InvoicesOrErr returns the Invoices value or an error if the edge
+// was not loaded in eager-loading.
+func (e TenantEdges) InvoicesOrErr() ([]*Invoice, error) {
+	if e.loadedTypes[8] {
+		return e.Invoices, nil
+	}
+	return nil, &NotLoadedError{edge: "invoices"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -265,6 +276,11 @@ func (_m *Tenant) QueryTasks() *TaskQuery {
 // QueryAuditLogs queries the "audit_logs" edge of the Tenant entity.
 func (_m *Tenant) QueryAuditLogs() *AuditLogQuery {
 	return NewTenantClient(_m.config).QueryAuditLogs(_m)
+}
+
+// QueryInvoices queries the "invoices" edge of the Tenant entity.
+func (_m *Tenant) QueryInvoices() *InvoiceQuery {
+	return NewTenantClient(_m.config).QueryInvoices(_m)
 }
 
 // Update returns a builder for updating this Tenant.

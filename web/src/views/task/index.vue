@@ -48,7 +48,7 @@
         <el-table-column label="创建人" width="100">
           <template #default="{ row }">{{ row.creator?.real_name || row.creator?.username || '-' }}</template>
         </el-table-column>
-        <el-table-column prop="due_date" label="截止日期" width="110" />
+        <el-table-column prop="due_date" label="截止日期" width="110"><template #default="{ row }">{{ formatDate(row.due_date) }}</template></el-table-column>
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
             <el-button size="small" @click="openDialog(row)">编辑</el-button>
@@ -125,6 +125,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, type FormInstance } from 'element-plus'
 import { listTasks, createTask, updateTask, deleteTask, assignTask, myTasks } from '../../api/task'
+import { formatDate } from '../../utils/format'
 import { listUsers } from '../../api/system'
 
 const loading = ref(false)

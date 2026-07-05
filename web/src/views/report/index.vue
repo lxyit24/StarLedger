@@ -99,7 +99,7 @@
         <el-table-column prop="amount" label="金额" width="100" align="right">
           <template #default="{ row }">¥{{ row.amount?.toFixed(2) }}</template>
         </el-table-column>
-        <el-table-column prop="due_date" label="到期日" width="120" />
+        <el-table-column prop="due_date" label="到期日" width="120"><template #default="{ row }">{{ formatDate(row.due_date) }}</template></el-table-column>
         <el-table-column prop="remark" label="备注" min-width="120" show-overflow-tooltip />
       </el-table>
     </el-card>
@@ -116,6 +116,7 @@ import { LineChart, PieChart, BarChart } from 'echarts/charts'
 import { TitleComponent, TooltipComponent, LegendComponent, GridComponent } from 'echarts/components'
 import { reportOverview, monthlyTrend, billTypeDistribution, billStatusSummary, serverCostAnalysis, taskStatistics } from '../../api/report'
 import { listBills } from '../../api/bill'
+import { formatDate } from '../../utils/format'
 
 use([CanvasRenderer, LineChart, PieChart, BarChart, TitleComponent, TooltipComponent, LegendComponent, GridComponent])
 

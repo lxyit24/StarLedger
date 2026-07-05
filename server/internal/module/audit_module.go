@@ -35,7 +35,7 @@ func (m *AuditModule) Icon() string {
 }
 
 func (m *AuditModule) IsCore() bool {
-	return true
+	return false
 }
 
 func (m *AuditModule) Init(client *ent.Client) error {

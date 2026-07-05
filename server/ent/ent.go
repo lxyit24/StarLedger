@@ -10,6 +10,7 @@ import (
 	"starledger/ent/auditlog"
 	"starledger/ent/bill"
 	"starledger/ent/contract"
+	"starledger/ent/invoice"
 	"starledger/ent/role"
 	"starledger/ent/serverlease"
 	"starledger/ent/task"
@@ -84,6 +85,7 @@ func checkColumn(t, c string) error {
 			auditlog.Table:     auditlog.ValidColumn,
 			bill.Table:         bill.ValidColumn,
 			contract.Table:     contract.ValidColumn,
+			invoice.Table:      invoice.ValidColumn,
 			role.Table:         role.ValidColumn,
 			serverlease.Table:  serverlease.ValidColumn,
 			task.Table:         task.ValidColumn,

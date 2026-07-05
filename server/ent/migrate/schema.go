@@ -172,6 +172,85 @@ var (
 			},
 		},
 	}
+	// InvoicesColumns holds the columns for the "invoices" table.
+	InvoicesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "invoice_no", Type: field.TypeString, Unique: true},
+		{Name: "invoice_code", Type: field.TypeString, Default: ""},
+		{Name: "invoice_type", Type: field.TypeEnum, Enums: []string{"vat_normal", "vat_special"}, Default: "vat_normal"},
+		{Name: "amount", Type: field.TypeFloat64, Default: 0},
+		{Name: "tax_amount", Type: field.TypeFloat64, Default: 0},
+		{Name: "total_amount", Type: field.TypeFloat64, Default: 0},
+		{Name: "tax_rate", Type: field.TypeFloat64, Default: 0},
+		{Name: "buyer_name", Type: field.TypeString, Default: ""},
+		{Name: "buyer_tax_no", Type: field.TypeString, Default: ""},
+		{Name: "buyer_address", Type: field.TypeString, Default: ""},
+		{Name: "buyer_bank", Type: field.TypeString, Default: ""},
+		{Name: "seller_name", Type: field.TypeString, Default: ""},
+		{Name: "seller_tax_no", Type: field.TypeString, Default: ""},
+		{Name: "seller_address", Type: field.TypeString, Default: ""},
+		{Name: "seller_bank", Type: field.TypeString, Default: ""},
+		{Name: "invoice_date", Type: field.TypeTime, Nullable: true},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"draft", "issued", "cancelled", "red"}, Default: "draft"},
+		{Name: "items_detail", Type: field.TypeString, Default: ""},
+		{Name: "remark", Type: field.TypeString, Default: ""},
+		{Name: "bill_id", Type: field.TypeInt, Nullable: true},
+		{Name: "tenant_id", Type: field.TypeInt},
+	}
+	// InvoicesTable holds the schema information for the "invoices" table.
+	InvoicesTable = &schema.Table{
+		Name:       "invoices",
+		Columns:    InvoicesColumns,
+		PrimaryKey: []*schema.Column{InvoicesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "invoices_bills_invoices",
+				Columns:    []*schema.Column{InvoicesColumns[22]},
+				RefColumns: []*schema.Column{BillsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "invoices_tenants_invoices",
+				Columns:    []*schema.Column{InvoicesColumns[23]},
+				RefColumns: []*schema.Column{TenantsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "invoice_tenant_id",
+				Unique:  false,
+				Columns: []*schema.Column{InvoicesColumns[23]},
+			},
+			{
+				Name:    "invoice_invoice_no",
+				Unique:  false,
+				Columns: []*schema.Column{InvoicesColumns[3]},
+			},
+			{
+				Name:    "invoice_status",
+				Unique:  false,
+				Columns: []*schema.Column{InvoicesColumns[19]},
+			},
+			{
+				Name:    "invoice_bill_id",
+				Unique:  false,
+				Columns: []*schema.Column{InvoicesColumns[22]},
+			},
+			{
+				Name:    "invoice_tenant_id_status",
+				Unique:  false,
+				Columns: []*schema.Column{InvoicesColumns[23], InvoicesColumns[19]},
+			},
+			{
+				Name:    "invoice_tenant_id_invoice_date",
+				Unique:  false,
+				Columns: []*schema.Column{InvoicesColumns[23], InvoicesColumns[18]},
+			},
+		},
+	}
 	// RolesColumns holds the columns for the "roles" table.
 	RolesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -454,6 +533,7 @@ var (
 		AuditLogsTable,
 		BillsTable,
 		ContractsTable,
+		InvoicesTable,
 		RolesTable,
 		ServerLeasesTable,
 		TasksTable,
@@ -469,6 +549,8 @@ func init() {
 	BillsTable.ForeignKeys[0].RefTable = ServerLeasesTable
 	BillsTable.ForeignKeys[1].RefTable = TenantsTable
 	ContractsTable.ForeignKeys[0].RefTable = TenantsTable
+	InvoicesTable.ForeignKeys[0].RefTable = BillsTable
+	InvoicesTable.ForeignKeys[1].RefTable = TenantsTable
 	RolesTable.ForeignKeys[0].RefTable = TenantsTable
 	ServerLeasesTable.ForeignKeys[0].RefTable = TenantsTable
 	TasksTable.ForeignKeys[0].RefTable = TenantsTable

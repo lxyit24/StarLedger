@@ -7,8 +7,8 @@
       <el-col :span="6"><el-card shadow="hover" class="stat-card"><div class="stat-icon" style="background: #67c23a"><el-icon :size="28"><Money /></el-icon></div><div class="stat-info"><div class="stat-value">¥{{ stats.totalAmount?.toFixed(2) }}</div><div class="stat-label">本月账单总额</div></div></el-card></el-col>
     </el-row>
     <el-row :gutter="20" style="margin-top: 20px">
-      <el-col :span="12"><el-card><template #header><span>即将到期服务器</span></template><el-table :data="expiringServers" stripe size="small" empty-text="暂无数据"><el-table-column prop="server_name" label="名称" /><el-table-column prop="provider" label="服务商" /><el-table-column prop="end_date" label="到期日期" width="120" /><el-table-column prop="status" label="状态" width="80"><template #default="{ row }"><el-tag :type="row.status === 'active' ? 'success' : 'warning'" size="small">{{ row.status }}</el-tag></template></el-table-column></el-table></el-card></el-col>
-      <el-col :span="12"><el-card><template #header><span>待处理账单</span></template><el-table :data="pendingBills" stripe size="small" empty-text="暂无数据"><el-table-column prop="bill_no" label="账单号" /><el-table-column prop="amount" label="金额" width="100"><template #default="{ row }">¥{{ row.amount }}</template></el-table-column><el-table-column prop="due_date" label="到期日" width="120" /><el-table-column prop="payment_status" label="状态" width="80"><template #default="{ row }"><el-tag :type="row.payment_status === 'overdue' ? 'danger' : 'warning'" size="small">{{ row.payment_status }}</el-tag></template></el-table-column></el-table></el-card></el-col>
+      <el-col :span="12"><el-card><template #header><span>即将到期服务器</span></template><el-table :data="expiringServers" stripe size="small" empty-text="暂无数据"><el-table-column prop="server_name" label="名称" /><el-table-column prop="provider" label="服务商" /><el-table-column prop="end_date" label="到期日期" width="120"><template #default="{ row }">{{ formatDate(row.end_date) }}</template></el-table-column><el-table-column prop="status" label="状态" width="80"><template #default="{ row }"><el-tag :type="serverStatusType(row.status)" size="small">{{ formatServerStatus(row.status) }}</el-tag></template></el-table-column></el-table></el-card></el-col>
+      <el-col :span="12"><el-card><template #header><span>待处理账单</span></template><el-table :data="pendingBills" stripe size="small" empty-text="暂无数据"><el-table-column prop="bill_no" label="账单号" /><el-table-column prop="amount" label="金额" width="100"><template #default="{ row }">¥{{ row.amount }}</template></el-table-column><el-table-column prop="due_date" label="到期日" width="120"><template #default="{ row }">{{ formatDate(row.due_date) }}</template></el-table-column><el-table-column prop="payment_status" label="状态" width="80"><template #default="{ row }"><el-tag :type="paymentStatusType(row.payment_status)" size="small">{{ formatPaymentStatus(row.payment_status) }}</el-tag></template></el-table-column></el-table></el-card></el-col>
     </el-row>
   </div>
 </template>
@@ -17,6 +17,7 @@ import { ref, onMounted } from 'vue'
 import { Monitor, Warning, Document, Money } from '@element-plus/icons-vue'
 import { listServers } from '../../api/server'
 import { listBills, billSummary } from '../../api/bill'
+import { formatDate, formatServerStatus, serverStatusType, formatPaymentStatus, paymentStatusType } from '../../utils/format'
 const stats = ref({ serverCount: 0, expiringCount: 0, overdueBills: 0, totalAmount: 0 })
 const expiringServers = ref<any[]>([])
 const pendingBills = ref<any[]>([])

@@ -45,6 +45,7 @@ func (Tenant) Edges() []ent.Edge {
 		edge.To("contracts", Contract.Type),
 		edge.To("tasks", Task.Type),
 		edge.To("audit_logs", AuditLog.Type),
+		edge.To("invoices", Invoice.Type),
 	}
 }
 

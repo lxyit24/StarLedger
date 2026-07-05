@@ -47,6 +47,8 @@ const (
 	EdgeTenant = "tenant"
 	// EdgeServerLease holds the string denoting the server_lease edge name in mutations.
 	EdgeServerLease = "server_lease"
+	// EdgeInvoices holds the string denoting the invoices edge name in mutations.
+	EdgeInvoices = "invoices"
 	// Table holds the table name of the bill in the database.
 	Table = "bills"
 	// TenantTable is the table that holds the tenant relation/edge.
@@ -63,6 +65,13 @@ const (
 	ServerLeaseInverseTable = "server_leases"
 	// ServerLeaseColumn is the table column denoting the server_lease relation/edge.
 	ServerLeaseColumn = "related_resource_id"
+	// InvoicesTable is the table that holds the invoices relation/edge.
+	InvoicesTable = "invoices"
+	// InvoicesInverseTable is the table name for the Invoice entity.
+	// It exists in this package in order to avoid circular dependency with the "invoice" package.
+	InvoicesInverseTable = "invoices"
+	// InvoicesColumn is the table column denoting the invoices relation/edge.
+	InvoicesColumn = "bill_id"
 )
 
 // Columns holds all SQL columns for bill fields.
@@ -236,6 +245,20 @@ func ByServerLeaseField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newServerLeaseStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByInvoicesCount orders the results by invoices count.
+func ByInvoicesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newInvoicesStep(), opts...)
+	}
+}
+
+// ByInvoices orders the results by invoices terms.
+func ByInvoices(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newInvoicesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newTenantStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -248,5 +271,12 @@ func newServerLeaseStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ServerLeaseInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, ServerLeaseTable, ServerLeaseColumn),
+	)
+}
+func newInvoicesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(InvoicesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, InvoicesTable, InvoicesColumn),
 	)
 }

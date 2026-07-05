@@ -39,7 +39,7 @@ func (m *BillingModule) Icon() string {
 }
 
 func (m *BillingModule) IsCore() bool {
-	return true
+	return false
 }
 
 func (m *BillingModule) Init(client *ent.Client) error {

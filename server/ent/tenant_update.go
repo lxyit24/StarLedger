@@ -9,6 +9,7 @@ import (
 	"starledger/ent/auditlog"
 	"starledger/ent/bill"
 	"starledger/ent/contract"
+	"starledger/ent/invoice"
 	"starledger/ent/predicate"
 	"starledger/ent/role"
 	"starledger/ent/serverlease"
@@ -246,6 +247,21 @@ func (_u *TenantUpdate) AddAuditLogs(v ...*AuditLog) *TenantUpdate {
 	return _u.AddAuditLogIDs(ids...)
 }
 
+// AddInvoiceIDs adds the "invoices" edge to the Invoice entity by IDs.
+func (_u *TenantUpdate) AddInvoiceIDs(ids ...int) *TenantUpdate {
+	_u.mutation.AddInvoiceIDs(ids...)
+	return _u
+}
+
+// AddInvoices adds the "invoices" edges to the Invoice entity.
+func (_u *TenantUpdate) AddInvoices(v ...*Invoice) *TenantUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddInvoiceIDs(ids...)
+}
+
 // Mutation returns the TenantMutation object of the builder.
 func (_u *TenantUpdate) Mutation() *TenantMutation {
 	return _u.mutation
@@ -417,6 +433,27 @@ func (_u *TenantUpdate) RemoveAuditLogs(v ...*AuditLog) *TenantUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAuditLogIDs(ids...)
+}
+
+// ClearInvoices clears all "invoices" edges to the Invoice entity.
+func (_u *TenantUpdate) ClearInvoices() *TenantUpdate {
+	_u.mutation.ClearInvoices()
+	return _u
+}
+
+// RemoveInvoiceIDs removes the "invoices" edge to Invoice entities by IDs.
+func (_u *TenantUpdate) RemoveInvoiceIDs(ids ...int) *TenantUpdate {
+	_u.mutation.RemoveInvoiceIDs(ids...)
+	return _u
+}
+
+// RemoveInvoices removes "invoices" edges to Invoice entities.
+func (_u *TenantUpdate) RemoveInvoices(v ...*Invoice) *TenantUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveInvoiceIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -868,6 +905,51 @@ func (_u *TenantUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.InvoicesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   tenant.InvoicesTable,
+			Columns: []string{tenant.InvoicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(invoice.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedInvoicesIDs(); len(nodes) > 0 && !_u.mutation.InvoicesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   tenant.InvoicesTable,
+			Columns: []string{tenant.InvoicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(invoice.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.InvoicesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   tenant.InvoicesTable,
+			Columns: []string{tenant.InvoicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(invoice.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{tenant.Label}
@@ -1098,6 +1180,21 @@ func (_u *TenantUpdateOne) AddAuditLogs(v ...*AuditLog) *TenantUpdateOne {
 	return _u.AddAuditLogIDs(ids...)
 }
 
+// AddInvoiceIDs adds the "invoices" edge to the Invoice entity by IDs.
+func (_u *TenantUpdateOne) AddInvoiceIDs(ids ...int) *TenantUpdateOne {
+	_u.mutation.AddInvoiceIDs(ids...)
+	return _u
+}
+
+// AddInvoices adds the "invoices" edges to the Invoice entity.
+func (_u *TenantUpdateOne) AddInvoices(v ...*Invoice) *TenantUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddInvoiceIDs(ids...)
+}
+
 // Mutation returns the TenantMutation object of the builder.
 func (_u *TenantUpdateOne) Mutation() *TenantMutation {
 	return _u.mutation
@@ -1269,6 +1366,27 @@ func (_u *TenantUpdateOne) RemoveAuditLogs(v ...*AuditLog) *TenantUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAuditLogIDs(ids...)
+}
+
+// ClearInvoices clears all "invoices" edges to the Invoice entity.
+func (_u *TenantUpdateOne) ClearInvoices() *TenantUpdateOne {
+	_u.mutation.ClearInvoices()
+	return _u
+}
+
+// RemoveInvoiceIDs removes the "invoices" edge to Invoice entities by IDs.
+func (_u *TenantUpdateOne) RemoveInvoiceIDs(ids ...int) *TenantUpdateOne {
+	_u.mutation.RemoveInvoiceIDs(ids...)
+	return _u
+}
+
+// RemoveInvoices removes "invoices" edges to Invoice entities.
+func (_u *TenantUpdateOne) RemoveInvoices(v ...*Invoice) *TenantUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveInvoiceIDs(ids...)
 }
 
 // Where appends a list predicates to the TenantUpdate builder.
@@ -1743,6 +1861,51 @@ func (_u *TenantUpdateOne) sqlSave(ctx context.Context) (_node *Tenant, err erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(auditlog.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.InvoicesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   tenant.InvoicesTable,
+			Columns: []string{tenant.InvoicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(invoice.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedInvoicesIDs(); len(nodes) > 0 && !_u.mutation.InvoicesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   tenant.InvoicesTable,
+			Columns: []string{tenant.InvoicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(invoice.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.InvoicesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   tenant.InvoicesTable,
+			Columns: []string{tenant.InvoicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(invoice.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

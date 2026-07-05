@@ -13,9 +13,9 @@
         <el-table-column prop="ip_address" label="IP 地址" width="140" />
         <el-table-column prop="config" label="配置" min-width="120" show-overflow-tooltip />
         <el-table-column prop="monthly_cost" label="月费(元)" width="90" align="right"><template #default="{ row }">¥{{ row.monthly_cost }}</template></el-table-column>
-        <el-table-column prop="start_date" label="开始日期" width="110" />
-        <el-table-column prop="end_date" label="到期日期" width="110" />
-        <el-table-column prop="status" label="状态" width="80"><template #default="{ row }"><el-tag :type="statusType(row.status)" size="small">{{ row.status }}</el-tag></template></el-table-column>
+        <el-table-column prop="start_date" label="开始日期" width="110"><template #default="{ row }">{{ formatDate(row.start_date) }}</template></el-table-column>
+        <el-table-column prop="end_date" label="到期日期" width="110"><template #default="{ row }">{{ formatDate(row.end_date) }}</template></el-table-column>
+        <el-table-column prop="status" label="状态" width="80"><template #default="{ row }"><el-tag :type="serverStatusType(row.status)" size="small">{{ formatServerStatus(row.status) }}</el-tag></template></el-table-column>
         <el-table-column label="操作" width="240" fixed="right"><template #default="{ row }"><el-button size="small" @click="openDialog(row)">编辑</el-button><el-button size="small" type="success" @click="handleRenew(row)">续租</el-button><el-popconfirm title="确定删除？" @confirm="handleDelete(row.id)"><template #reference><el-button size="small" type="danger">删除</el-button></template></el-popconfirm></template></el-table-column>
       </el-table>
       <el-pagination style="margin-top: 16px; justify-content: flex-end" v-model:current-page="query.page" v-model:page-size="query.page_size" :total="total" layout="total, sizes, prev, pager, next" @change="fetchData" />
@@ -42,6 +42,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, type FormInstance } from 'element-plus'
 import { listServers, createServer, updateServer, deleteServer, renewServer } from '../../api/server'
+import { formatDate, formatServerStatus, serverStatusType } from '../../utils/format'
 const loading = ref(false)
 const tableData = ref<any[]>([])
 const total = ref(0)

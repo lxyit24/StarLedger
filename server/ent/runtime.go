@@ -6,6 +6,7 @@ import (
 	"starledger/ent/auditlog"
 	"starledger/ent/bill"
 	"starledger/ent/contract"
+	"starledger/ent/invoice"
 	"starledger/ent/role"
 	"starledger/ent/schema"
 	"starledger/ent/serverlease"
@@ -157,6 +158,85 @@ func init() {
 	contractDescRemark := contractFields[9].Descriptor()
 	// contract.DefaultRemark holds the default value on creation for the remark field.
 	contract.DefaultRemark = contractDescRemark.Default.(string)
+	invoiceMixin := schema.Invoice{}.Mixin()
+	invoiceMixinFields0 := invoiceMixin[0].Fields()
+	_ = invoiceMixinFields0
+	invoiceFields := schema.Invoice{}.Fields()
+	_ = invoiceFields
+	// invoiceDescCreatedAt is the schema descriptor for created_at field.
+	invoiceDescCreatedAt := invoiceMixinFields0[0].Descriptor()
+	// invoice.DefaultCreatedAt holds the default value on creation for the created_at field.
+	invoice.DefaultCreatedAt = invoiceDescCreatedAt.Default.(func() time.Time)
+	// invoiceDescUpdatedAt is the schema descriptor for updated_at field.
+	invoiceDescUpdatedAt := invoiceMixinFields0[1].Descriptor()
+	// invoice.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	invoice.DefaultUpdatedAt = invoiceDescUpdatedAt.Default.(func() time.Time)
+	// invoice.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	invoice.UpdateDefaultUpdatedAt = invoiceDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// invoiceDescInvoiceNo is the schema descriptor for invoice_no field.
+	invoiceDescInvoiceNo := invoiceFields[2].Descriptor()
+	// invoice.InvoiceNoValidator is a validator for the "invoice_no" field. It is called by the builders before save.
+	invoice.InvoiceNoValidator = invoiceDescInvoiceNo.Validators[0].(func(string) error)
+	// invoiceDescInvoiceCode is the schema descriptor for invoice_code field.
+	invoiceDescInvoiceCode := invoiceFields[3].Descriptor()
+	// invoice.DefaultInvoiceCode holds the default value on creation for the invoice_code field.
+	invoice.DefaultInvoiceCode = invoiceDescInvoiceCode.Default.(string)
+	// invoiceDescAmount is the schema descriptor for amount field.
+	invoiceDescAmount := invoiceFields[5].Descriptor()
+	// invoice.DefaultAmount holds the default value on creation for the amount field.
+	invoice.DefaultAmount = invoiceDescAmount.Default.(float64)
+	// invoiceDescTaxAmount is the schema descriptor for tax_amount field.
+	invoiceDescTaxAmount := invoiceFields[6].Descriptor()
+	// invoice.DefaultTaxAmount holds the default value on creation for the tax_amount field.
+	invoice.DefaultTaxAmount = invoiceDescTaxAmount.Default.(float64)
+	// invoiceDescTotalAmount is the schema descriptor for total_amount field.
+	invoiceDescTotalAmount := invoiceFields[7].Descriptor()
+	// invoice.DefaultTotalAmount holds the default value on creation for the total_amount field.
+	invoice.DefaultTotalAmount = invoiceDescTotalAmount.Default.(float64)
+	// invoiceDescTaxRate is the schema descriptor for tax_rate field.
+	invoiceDescTaxRate := invoiceFields[8].Descriptor()
+	// invoice.DefaultTaxRate holds the default value on creation for the tax_rate field.
+	invoice.DefaultTaxRate = invoiceDescTaxRate.Default.(float64)
+	// invoiceDescBuyerName is the schema descriptor for buyer_name field.
+	invoiceDescBuyerName := invoiceFields[9].Descriptor()
+	// invoice.DefaultBuyerName holds the default value on creation for the buyer_name field.
+	invoice.DefaultBuyerName = invoiceDescBuyerName.Default.(string)
+	// invoiceDescBuyerTaxNo is the schema descriptor for buyer_tax_no field.
+	invoiceDescBuyerTaxNo := invoiceFields[10].Descriptor()
+	// invoice.DefaultBuyerTaxNo holds the default value on creation for the buyer_tax_no field.
+	invoice.DefaultBuyerTaxNo = invoiceDescBuyerTaxNo.Default.(string)
+	// invoiceDescBuyerAddress is the schema descriptor for buyer_address field.
+	invoiceDescBuyerAddress := invoiceFields[11].Descriptor()
+	// invoice.DefaultBuyerAddress holds the default value on creation for the buyer_address field.
+	invoice.DefaultBuyerAddress = invoiceDescBuyerAddress.Default.(string)
+	// invoiceDescBuyerBank is the schema descriptor for buyer_bank field.
+	invoiceDescBuyerBank := invoiceFields[12].Descriptor()
+	// invoice.DefaultBuyerBank holds the default value on creation for the buyer_bank field.
+	invoice.DefaultBuyerBank = invoiceDescBuyerBank.Default.(string)
+	// invoiceDescSellerName is the schema descriptor for seller_name field.
+	invoiceDescSellerName := invoiceFields[13].Descriptor()
+	// invoice.DefaultSellerName holds the default value on creation for the seller_name field.
+	invoice.DefaultSellerName = invoiceDescSellerName.Default.(string)
+	// invoiceDescSellerTaxNo is the schema descriptor for seller_tax_no field.
+	invoiceDescSellerTaxNo := invoiceFields[14].Descriptor()
+	// invoice.DefaultSellerTaxNo holds the default value on creation for the seller_tax_no field.
+	invoice.DefaultSellerTaxNo = invoiceDescSellerTaxNo.Default.(string)
+	// invoiceDescSellerAddress is the schema descriptor for seller_address field.
+	invoiceDescSellerAddress := invoiceFields[15].Descriptor()
+	// invoice.DefaultSellerAddress holds the default value on creation for the seller_address field.
+	invoice.DefaultSellerAddress = invoiceDescSellerAddress.Default.(string)
+	// invoiceDescSellerBank is the schema descriptor for seller_bank field.
+	invoiceDescSellerBank := invoiceFields[16].Descriptor()
+	// invoice.DefaultSellerBank holds the default value on creation for the seller_bank field.
+	invoice.DefaultSellerBank = invoiceDescSellerBank.Default.(string)
+	// invoiceDescItemsDetail is the schema descriptor for items_detail field.
+	invoiceDescItemsDetail := invoiceFields[19].Descriptor()
+	// invoice.DefaultItemsDetail holds the default value on creation for the items_detail field.
+	invoice.DefaultItemsDetail = invoiceDescItemsDetail.Default.(string)
+	// invoiceDescRemark is the schema descriptor for remark field.
+	invoiceDescRemark := invoiceFields[20].Descriptor()
+	// invoice.DefaultRemark holds the default value on creation for the remark field.
+	invoice.DefaultRemark = invoiceDescRemark.Default.(string)
 	roleMixin := schema.Role{}.Mixin()
 	roleMixinFields0 := roleMixin[0].Fields()
 	_ = roleMixinFields0

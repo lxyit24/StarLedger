@@ -15,6 +15,9 @@ type Bill func(*sql.Selector)
 // Contract is the predicate function for contract builders.
 type Contract func(*sql.Selector)
 
+// Invoice is the predicate function for invoice builders.
+type Invoice func(*sql.Selector)
+
 // Role is the predicate function for role builders.
 type Role func(*sql.Selector)
 

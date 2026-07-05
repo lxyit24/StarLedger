@@ -59,9 +59,11 @@ type BillEdges struct {
 	Tenant *Tenant `json:"tenant,omitempty"`
 	// ServerLease holds the value of the server_lease edge.
 	ServerLease *ServerLease `json:"server_lease,omitempty"`
+	// Invoices holds the value of the invoices edge.
+	Invoices []*Invoice `json:"invoices,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // TenantOrErr returns the Tenant value or an error if the edge
@@ -84,6 +86,15 @@ func (e BillEdges) ServerLeaseOrErr() (*ServerLease, error) {
 		return nil, &NotFoundError{label: serverlease.Label}
 	}
 	return nil, &NotLoadedError{edge: "server_lease"}
+}
+
+// InvoicesOrErr returns the Invoices value or an error if the edge
+// was not loaded in eager-loading.
+func (e BillEdges) InvoicesOrErr() ([]*Invoice, error) {
+	if e.loadedTypes[2] {
+		return e.Invoices, nil
+	}
+	return nil, &NotLoadedError{edge: "invoices"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -227,6 +238,11 @@ func (_m *Bill) QueryTenant() *TenantQuery {
 // QueryServerLease queries the "server_lease" edge of the Bill entity.
 func (_m *Bill) QueryServerLease() *ServerLeaseQuery {
 	return NewBillClient(_m.config).QueryServerLease(_m)
+}
+
+// QueryInvoices queries the "invoices" edge of the Bill entity.
+func (_m *Bill) QueryInvoices() *InvoiceQuery {
+	return NewBillClient(_m.config).QueryInvoices(_m)
 }
 
 // Update returns a builder for updating this Bill.

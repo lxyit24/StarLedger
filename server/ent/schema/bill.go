@@ -44,6 +44,7 @@ func (Bill) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("tenant", Tenant.Type).Ref("bills").Unique().Required().Field("tenant_id"),
 		edge.From("server_lease", ServerLease.Type).Ref("bills").Unique().Field("related_resource_id"),
+		edge.To("invoices", Invoice.Type),
 	}
 }
 

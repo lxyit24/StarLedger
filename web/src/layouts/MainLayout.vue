@@ -41,6 +41,10 @@
           <el-icon><ShoppingCart /></el-icon>
           <span>模块市场</span>
         </el-menu-item>
+        <el-menu-item v-if="appStore.isModuleEnabled('invoice')" index="/app/invoices">
+          <el-icon><Ticket /></el-icon>
+          <span>发票管理</span>
+        </el-menu-item>
         <el-sub-menu index="system">
           <template #title>
             <el-icon><Setting /></el-icon>
@@ -80,7 +84,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import { useAppStore } from '../stores/app'
-import { Odometer, Monitor, Document, Setting, Fold, Expand, ShoppingCart, Tickets, List, DataAnalysis } from '@element-plus/icons-vue'
+import { Odometer, Monitor, Document, Setting, Fold, Expand, ShoppingCart, Tickets, List, DataAnalysis, Ticket } from '@element-plus/icons-vue'
 
 const isCollapse = ref(false)
 const userStore = useUserStore()

@@ -138,7 +138,7 @@
       </div>
       <div class="footer-bottom">
         <div class="container">
-          <p>© 2024 星账 StarLedger. All rights reserved.</p>
+          <p>© {{ new Date().getFullYear() }} 星账 StarLedger. All rights reserved.</p>
         </div>
       </div>
     </footer>

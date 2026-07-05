@@ -18,6 +18,8 @@ type Tx struct {
 	Bill *BillClient
 	// Contract is the client for interacting with the Contract builders.
 	Contract *ContractClient
+	// Invoice is the client for interacting with the Invoice builders.
+	Invoice *InvoiceClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
 	// ServerLease is the client for interacting with the ServerLease builders.
@@ -164,6 +166,7 @@ func (tx *Tx) init() {
 	tx.AuditLog = NewAuditLogClient(tx.config)
 	tx.Bill = NewBillClient(tx.config)
 	tx.Contract = NewContractClient(tx.config)
+	tx.Invoice = NewInvoiceClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
 	tx.ServerLease = NewServerLeaseClient(tx.config)
 	tx.Task = NewTaskClient(tx.config)

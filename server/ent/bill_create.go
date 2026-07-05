@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"starledger/ent/bill"
+	"starledger/ent/invoice"
 	"starledger/ent/serverlease"
 	"starledger/ent/tenant"
 	"time"
@@ -208,6 +209,21 @@ func (_c *BillCreate) SetNillableServerLeaseID(id *int) *BillCreate {
 // SetServerLease sets the "server_lease" edge to the ServerLease entity.
 func (_c *BillCreate) SetServerLease(v *ServerLease) *BillCreate {
 	return _c.SetServerLeaseID(v.ID)
+}
+
+// AddInvoiceIDs adds the "invoices" edge to the Invoice entity by IDs.
+func (_c *BillCreate) AddInvoiceIDs(ids ...int) *BillCreate {
+	_c.mutation.AddInvoiceIDs(ids...)
+	return _c
+}
+
+// AddInvoices adds the "invoices" edges to the Invoice entity.
+func (_c *BillCreate) AddInvoices(v ...*Invoice) *BillCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddInvoiceIDs(ids...)
 }
 
 // Mutation returns the BillMutation object of the builder.
@@ -441,6 +457,22 @@ func (_c *BillCreate) createSpec() (*Bill, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.RelatedResourceID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.InvoicesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   bill.InvoicesTable,
+			Columns: []string{bill.InvoicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(invoice.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
