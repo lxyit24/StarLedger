@@ -1,4 +1,4 @@
-package billing
+﻿package billing
 
 import (
 	"net/http"
@@ -128,4 +128,43 @@ func (h *Handler) Overdue(c *gin.Context) {
 		return
 	}
 	pkg.Success(c, items)
+}
+
+type BatchIDsReq struct {
+	IDs []int `json:"ids" binding:"required"`
+}
+
+type BatchPayReq struct {
+	IDs           []int  `json:"ids" binding:"required"`
+	PaymentMethod string `json:"payment_method"`
+}
+
+func (h *Handler) BatchPay(c *gin.Context) {
+	var req BatchPayReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		pkg.Fail(c, http.StatusBadRequest, "参数错误: "+err.Error())
+		return
+	}
+	tenantID := middleware.GetTenantID(c)
+	count, err := h.svc.BatchPay(c.Request.Context(), tenantID, req.IDs, req.PaymentMethod)
+	if err != nil {
+		pkg.Fail(c, http.StatusInternalServerError, "批量支付失败: "+err.Error())
+		return
+	}
+	pkg.Success(c, gin.H{"paid_count": count})
+}
+
+func (h *Handler) BatchDelete(c *gin.Context) {
+	var req BatchIDsReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		pkg.Fail(c, http.StatusBadRequest, "参数错误: "+err.Error())
+		return
+	}
+	tenantID := middleware.GetTenantID(c)
+	count, err := h.svc.BatchDelete(c.Request.Context(), tenantID, req.IDs)
+	if err != nil {
+		pkg.Fail(c, http.StatusInternalServerError, "批量删除失败: "+err.Error())
+		return
+	}
+	pkg.Success(c, gin.H{"deleted_count": count})
 }

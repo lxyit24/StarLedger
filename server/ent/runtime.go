@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"starledger/ent/auditlog"
 	"starledger/ent/bill"
 	"starledger/ent/contract"
 	"starledger/ent/role"
@@ -19,6 +20,57 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	auditlogMixin := schema.AuditLog{}.Mixin()
+	auditlogMixinFields0 := auditlogMixin[0].Fields()
+	_ = auditlogMixinFields0
+	auditlogFields := schema.AuditLog{}.Fields()
+	_ = auditlogFields
+	// auditlogDescCreatedAt is the schema descriptor for created_at field.
+	auditlogDescCreatedAt := auditlogMixinFields0[0].Descriptor()
+	// auditlog.DefaultCreatedAt holds the default value on creation for the created_at field.
+	auditlog.DefaultCreatedAt = auditlogDescCreatedAt.Default.(func() time.Time)
+	// auditlogDescUpdatedAt is the schema descriptor for updated_at field.
+	auditlogDescUpdatedAt := auditlogMixinFields0[1].Descriptor()
+	// auditlog.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	auditlog.DefaultUpdatedAt = auditlogDescUpdatedAt.Default.(func() time.Time)
+	// auditlog.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	auditlog.UpdateDefaultUpdatedAt = auditlogDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// auditlogDescUserID is the schema descriptor for user_id field.
+	auditlogDescUserID := auditlogFields[1].Descriptor()
+	// auditlog.DefaultUserID holds the default value on creation for the user_id field.
+	auditlog.DefaultUserID = auditlogDescUserID.Default.(int)
+	// auditlogDescUsername is the schema descriptor for username field.
+	auditlogDescUsername := auditlogFields[2].Descriptor()
+	// auditlog.DefaultUsername holds the default value on creation for the username field.
+	auditlog.DefaultUsername = auditlogDescUsername.Default.(string)
+	// auditlogDescAction is the schema descriptor for action field.
+	auditlogDescAction := auditlogFields[3].Descriptor()
+	// auditlog.ActionValidator is a validator for the "action" field. It is called by the builders before save.
+	auditlog.ActionValidator = auditlogDescAction.Validators[0].(func(string) error)
+	// auditlogDescResourceType is the schema descriptor for resource_type field.
+	auditlogDescResourceType := auditlogFields[4].Descriptor()
+	// auditlog.DefaultResourceType holds the default value on creation for the resource_type field.
+	auditlog.DefaultResourceType = auditlogDescResourceType.Default.(string)
+	// auditlogDescResourceID is the schema descriptor for resource_id field.
+	auditlogDescResourceID := auditlogFields[5].Descriptor()
+	// auditlog.DefaultResourceID holds the default value on creation for the resource_id field.
+	auditlog.DefaultResourceID = auditlogDescResourceID.Default.(int)
+	// auditlogDescDetail is the schema descriptor for detail field.
+	auditlogDescDetail := auditlogFields[6].Descriptor()
+	// auditlog.DefaultDetail holds the default value on creation for the detail field.
+	auditlog.DefaultDetail = auditlogDescDetail.Default.(string)
+	// auditlogDescIPAddress is the schema descriptor for ip_address field.
+	auditlogDescIPAddress := auditlogFields[7].Descriptor()
+	// auditlog.DefaultIPAddress holds the default value on creation for the ip_address field.
+	auditlog.DefaultIPAddress = auditlogDescIPAddress.Default.(string)
+	// auditlogDescUserAgent is the schema descriptor for user_agent field.
+	auditlogDescUserAgent := auditlogFields[8].Descriptor()
+	// auditlog.DefaultUserAgent holds the default value on creation for the user_agent field.
+	auditlog.DefaultUserAgent = auditlogDescUserAgent.Default.(string)
+	// auditlogDescStatus is the schema descriptor for status field.
+	auditlogDescStatus := auditlogFields[9].Descriptor()
+	// auditlog.DefaultStatus holds the default value on creation for the status field.
+	auditlog.DefaultStatus = auditlogDescStatus.Default.(string)
 	billMixin := schema.Bill{}.Mixin()
 	billMixinFields0 := billMixin[0].Fields()
 	_ = billMixinFields0

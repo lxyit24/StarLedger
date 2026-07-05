@@ -1,4 +1,4 @@
-package service
+﻿package service
 
 import (
 	"context"
@@ -131,4 +131,34 @@ func (s *BillService) CheckOverdue(ctx context.Context) error {
 		SetPaymentStatus(bill.PaymentStatusOverdue).
 		Save(ctx)
 	return err
+}
+
+// BatchPay pays multiple bills at once.
+func (s *BillService) BatchPay(ctx context.Context, tenantID int, ids []int, paymentMethod string) (int, error) {
+	count := 0
+	for _, id := range ids {
+		_, err := s.client.Bill.UpdateOneID(id).
+			Where(bill.TenantID(tenantID)).
+			SetPaymentStatus(bill.PaymentStatusPaid).
+			SetPaidDate(time.Now()).
+			SetPaymentMethod(paymentMethod).
+			Save(ctx)
+		if err != nil {
+			continue
+		}
+		count++
+	}
+	return count, nil
+}
+
+// BatchDelete deletes multiple bills.
+func (s *BillService) BatchDelete(ctx context.Context, tenantID int, ids []int) (int, error) {
+	n, err := s.client.Bill.Delete().
+		Where(
+			bill.IDIn(ids...),
+			bill.TenantID(tenantID),
+			bill.PaymentStatusIn(bill.PaymentStatusPending, bill.PaymentStatusCancelled),
+		).
+		Exec(ctx)
+	return n, err
 }

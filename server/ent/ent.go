@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"starledger/ent/auditlog"
 	"starledger/ent/bill"
 	"starledger/ent/contract"
 	"starledger/ent/role"
@@ -80,6 +81,7 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			auditlog.Table:     auditlog.ValidColumn,
 			bill.Table:         bill.ValidColumn,
 			contract.Table:     contract.ValidColumn,
 			role.Table:         role.ValidColumn,

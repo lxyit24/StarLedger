@@ -1,4 +1,4 @@
-import request from '../utils/request'
+﻿import request from '../utils/request'
 
 export interface Bill {
   id: number
@@ -48,4 +48,12 @@ export function cancelBill(id: number) {
 
 export function billSummary() {
   return request.get('/bills/summary')
+}
+
+export function batchPayBills(ids: number[], payment_method: string) {
+  return request.post('/bills/batch-pay', { ids, payment_method })
+}
+
+export function batchDeleteBills(ids: number[]) {
+  return request.post('/bills/batch-delete', { ids })
 }
