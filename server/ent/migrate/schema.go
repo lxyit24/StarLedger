@@ -8,6 +8,58 @@ import (
 )
 
 var (
+	// AuditLogsColumns holds the columns for the "audit_logs" table.
+	AuditLogsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeInt, Nullable: true, Default: 0},
+		{Name: "username", Type: field.TypeString, Default: ""},
+		{Name: "action", Type: field.TypeString},
+		{Name: "resource_type", Type: field.TypeString, Default: ""},
+		{Name: "resource_id", Type: field.TypeInt, Nullable: true, Default: 0},
+		{Name: "detail", Type: field.TypeString, Default: ""},
+		{Name: "ip_address", Type: field.TypeString, Default: ""},
+		{Name: "user_agent", Type: field.TypeString, Default: ""},
+		{Name: "status", Type: field.TypeString, Default: "success"},
+		{Name: "tenant_id", Type: field.TypeInt},
+	}
+	// AuditLogsTable holds the schema information for the "audit_logs" table.
+	AuditLogsTable = &schema.Table{
+		Name:       "audit_logs",
+		Columns:    AuditLogsColumns,
+		PrimaryKey: []*schema.Column{AuditLogsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "audit_logs_tenants_audit_logs",
+				Columns:    []*schema.Column{AuditLogsColumns[12]},
+				RefColumns: []*schema.Column{TenantsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "auditlog_tenant_id_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{AuditLogsColumns[12], AuditLogsColumns[1]},
+			},
+			{
+				Name:    "auditlog_tenant_id_action",
+				Unique:  false,
+				Columns: []*schema.Column{AuditLogsColumns[12], AuditLogsColumns[5]},
+			},
+			{
+				Name:    "auditlog_tenant_id_resource_type",
+				Unique:  false,
+				Columns: []*schema.Column{AuditLogsColumns[12], AuditLogsColumns[6]},
+			},
+			{
+				Name:    "auditlog_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{AuditLogsColumns[3]},
+			},
+		},
+	}
 	// BillsColumns holds the columns for the "bills" table.
 	BillsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -399,6 +451,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AuditLogsTable,
 		BillsTable,
 		ContractsTable,
 		RolesTable,
@@ -412,6 +465,7 @@ var (
 )
 
 func init() {
+	AuditLogsTable.ForeignKeys[0].RefTable = TenantsTable
 	BillsTable.ForeignKeys[0].RefTable = ServerLeasesTable
 	BillsTable.ForeignKeys[1].RefTable = TenantsTable
 	ContractsTable.ForeignKeys[0].RefTable = TenantsTable

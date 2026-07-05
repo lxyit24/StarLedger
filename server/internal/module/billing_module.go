@@ -1,4 +1,4 @@
-package module
+﻿package module
 
 import (
 	"context"
@@ -58,6 +58,8 @@ func (m *BillingModule) RegisterRoutes(group *gin.RouterGroup) {
 		bills.POST("", m.handler.Create)
 		bills.PUT("/:id/pay", m.handler.Pay)
 		bills.PUT("/:id/cancel", m.handler.Cancel)
+		bills.POST("/batch-pay", m.handler.BatchPay)
+		bills.POST("/batch-delete", m.handler.BatchDelete)
 	}
 }
 

@@ -1,4 +1,4 @@
-package main
+﻿package main
 
 import (
 	"context"
@@ -86,6 +86,8 @@ func main() {
 	registry.Register(module.NewBillingModule())
 	registry.Register(module.NewContractModule())
 	registry.Register(module.NewTaskModule())
+	registry.Register(module.NewReportModule())
+	registry.Register(module.NewAuditModule())
 
 	if err := registry.InitAll(client); err != nil {
 		pkg.Logger.Fatal("failed to init modules", zap.Error(err))

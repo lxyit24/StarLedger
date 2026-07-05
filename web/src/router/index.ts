@@ -4,13 +4,32 @@ import { useAppStore } from '../stores/app'
 
 // Map route paths to module names for access control
 const routeModuleMap: Record<string, string> = {
-  '/servers': 'server_lease',
-  '/bills': 'billing',
-  '/contracts': 'contract',
-  '/tasks': 'task',
+  '/app/servers': 'server_lease',
+  '/app/bills': 'billing',
+  '/app/contracts': 'contract',
+  '/app/tasks': 'task',
+  '/app/reports': 'report',
 }
 
 const routes = [
+  {
+    path: '/',
+    name: 'Landing',
+    component: () => import('../views/landing/index.vue'),
+    meta: { public: true },
+  },
+  {
+    path: '/terms',
+    name: 'Terms',
+    component: () => import('../views/landing/terms.vue'),
+    meta: { public: true },
+  },
+  {
+    path: '/privacy',
+    name: 'Privacy',
+    component: () => import('../views/landing/privacy.vue'),
+    meta: { public: true },
+  },
   {
     path: '/login',
     name: 'Login',
@@ -18,9 +37,9 @@ const routes = [
     meta: { public: true },
   },
   {
-    path: '/',
+    path: '/app',
     component: () => import('../layouts/MainLayout.vue'),
-    redirect: '/dashboard',
+    redirect: '/app/dashboard',
     children: [
       {
         path: 'dashboard',
@@ -53,6 +72,12 @@ const routes = [
         meta: { title: '任务协作' },
       },
       {
+        path: 'reports',
+        name: 'Reports',
+        component: () => import('../views/report/index.vue'),
+        meta: { title: '数据报表' },
+      },
+      {
         path: 'market',
         name: 'Market',
         component: () => import('../views/market/index.vue'),
@@ -75,6 +100,12 @@ const routes = [
         name: 'Tenants',
         component: () => import('../views/system/tenants.vue'),
         meta: { title: '租户管理' },
+      },
+      {
+        path: 'system/audit',
+        name: 'Audit',
+        component: () => import('../views/system/audit.vue'),
+        meta: { title: '审计日志' },
       },
     ],
   },
@@ -101,7 +132,7 @@ router.beforeEach(async (to, _from, next) => {
   // Check module access for protected routes
   const moduleName = routeModuleMap[to.path]
   if (moduleName && !appStore.isModuleEnabled(moduleName)) {
-    next('/market')
+    next('/app/market')
     return
   }
 

@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"starledger/ent/auditlog"
 	"starledger/ent/bill"
 	"starledger/ent/contract"
 	"starledger/ent/role"
@@ -234,6 +235,21 @@ func (_c *TenantCreate) AddTasks(v ...*Task) *TenantCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddTaskIDs(ids...)
+}
+
+// AddAuditLogIDs adds the "audit_logs" edge to the AuditLog entity by IDs.
+func (_c *TenantCreate) AddAuditLogIDs(ids ...int) *TenantCreate {
+	_c.mutation.AddAuditLogIDs(ids...)
+	return _c
+}
+
+// AddAuditLogs adds the "audit_logs" edges to the AuditLog entity.
+func (_c *TenantCreate) AddAuditLogs(v ...*AuditLog) *TenantCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddAuditLogIDs(ids...)
 }
 
 // Mutation returns the TenantMutation object of the builder.
@@ -505,6 +521,22 @@ func (_c *TenantCreate) createSpec() (*Tenant, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(task.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.AuditLogsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   tenant.AuditLogsTable,
+			Columns: []string{tenant.AuditLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(auditlog.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

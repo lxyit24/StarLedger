@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <el-container class="main-layout">
     <el-aside :width="isCollapse ? '64px' : '220px'" class="sidebar">
       <div class="logo">
@@ -13,27 +13,31 @@
         text-color="#bfcbd9"
         active-text-color="#409EFF"
       >
-        <el-menu-item index="/dashboard">
+        <el-menu-item index="/app/dashboard">
           <el-icon><Odometer /></el-icon>
           <span>仪表盘</span>
         </el-menu-item>
-        <el-menu-item v-if="appStore.isModuleEnabled('server_lease')" index="/servers">
+        <el-menu-item v-if="appStore.isModuleEnabled('server_lease')" index="/app/servers">
           <el-icon><Monitor /></el-icon>
           <span>服务器租赁</span>
         </el-menu-item>
-        <el-menu-item v-if="appStore.isModuleEnabled('billing')" index="/bills">
+        <el-menu-item v-if="appStore.isModuleEnabled('billing')" index="/app/bills">
           <el-icon><Document /></el-icon>
           <span>账单管理</span>
         </el-menu-item>
-        <el-menu-item v-if="appStore.isModuleEnabled('contract')" index="/contracts">
+        <el-menu-item v-if="appStore.isModuleEnabled('contract')" index="/app/contracts">
           <el-icon><Tickets /></el-icon>
           <span>合同管理</span>
         </el-menu-item>
-        <el-menu-item v-if="appStore.isModuleEnabled('task')" index="/tasks">
+        <el-menu-item v-if="appStore.isModuleEnabled('task')" index="/app/tasks">
           <el-icon><List /></el-icon>
           <span>任务协作</span>
         </el-menu-item>
-        <el-menu-item index="/market">
+        <el-menu-item v-if="appStore.isModuleEnabled('report')" index="/app/reports">
+          <el-icon><DataAnalysis /></el-icon>
+          <span>数据报表</span>
+        </el-menu-item>
+        <el-menu-item index="/app/market">
           <el-icon><ShoppingCart /></el-icon>
           <span>模块市场</span>
         </el-menu-item>
@@ -42,9 +46,10 @@
             <el-icon><Setting /></el-icon>
             <span>系统管理</span>
           </template>
-          <el-menu-item index="/system/users">用户管理</el-menu-item>
-          <el-menu-item index="/system/roles">角色管理</el-menu-item>
-          <el-menu-item index="/system/tenants">租户管理</el-menu-item>
+          <el-menu-item index="/app/system/users">用户管理</el-menu-item>
+          <el-menu-item index="/app/system/roles">角色管理</el-menu-item>
+          <el-menu-item index="/app/system/tenants">租户管理</el-menu-item>
+          <el-menu-item index="/app/system/audit">审计日志</el-menu-item>
         </el-sub-menu>
       </el-menu>
     </el-aside>
@@ -55,7 +60,7 @@
           <Expand v-else />
         </el-icon>
         <el-breadcrumb separator="/">
-          <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+          <el-breadcrumb-item :to="{ path: '/app/dashboard' }">首页</el-breadcrumb-item>
           <el-breadcrumb-item v-if="$route.meta.title">{{ $route.meta.title }}</el-breadcrumb-item>
         </el-breadcrumb>
         <div class="header-right">
@@ -75,7 +80,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import { useAppStore } from '../stores/app'
-import { Odometer, Monitor, Document, Setting, Fold, Expand, ShoppingCart, Tickets, List } from '@element-plus/icons-vue'
+import { Odometer, Monitor, Document, Setting, Fold, Expand, ShoppingCart, Tickets, List, DataAnalysis } from '@element-plus/icons-vue'
 
 const isCollapse = ref(false)
 const userStore = useUserStore()

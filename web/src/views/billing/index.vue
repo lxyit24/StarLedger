@@ -3,11 +3,16 @@
     <el-card style="margin-bottom: 16px">
       <el-row :gutter="16" align="middle">
         <el-col :span="4"><el-select v-model="query.payment_status" placeholder="支付状态" clearable @change="fetchData"><el-option label="待支付" value="pending" /><el-option label="已支付" value="paid" /><el-option label="已逾期" value="overdue" /><el-option label="已取消" value="cancelled" /></el-select></el-col>
-        <el-col :span="4"><el-button type="primary" @click="openDialog()">新增账单</el-button></el-col>
+        <el-col :span="8">
+          <el-button type="primary" @click="openDialog()">新增账单</el-button>
+          <el-button v-if="selectedIds.length > 0" type="success" @click="handleBatchPay">批量支付 ({{ selectedIds.length }})</el-button>
+          <el-button v-if="selectedIds.length > 0" type="danger" @click="handleBatchDelete">批量删除 ({{ selectedIds.length }})</el-button>
+        </el-col>
       </el-row>
     </el-card>
     <el-card>
-      <el-table :data="tableData" stripe v-loading="loading" empty-text="暂无数据">
+      <el-table :data="tableData" stripe v-loading="loading" empty-text="暂无数据" @selection-change="handleSelectionChange">
+        <el-table-column type="selection" width="45" />
         <el-table-column prop="bill_no" label="账单号" width="160" />
         <el-table-column prop="bill_type" label="类型" width="100" />
         <el-table-column prop="amount" label="金额" width="100" align="right"><template #default="{ row }">¥{{ row.amount }}</template></el-table-column>
@@ -34,17 +39,24 @@
       <el-form label-width="80px"><el-form-item label="支付方式"><el-select v-model="payMethod" style="width: 100%"><el-option label="银行转账" value="bank_transfer" /><el-option label="支付宝" value="alipay" /><el-option label="微信" value="wechat" /><el-option label="现金" value="cash" /></el-select></el-form-item></el-form>
       <template #footer><el-button @click="payVisible = false">取消</el-button><el-button type="primary" :loading="payLoading" @click="submitPay">确认支付</el-button></template>
     </el-dialog>
+    <el-dialog v-model="batchPayVisible" title="批量支付确认" width="400px">
+      <p>将批量支付 <strong>{{ selectedIds.length }}</strong> 个账单</p>
+      <el-form label-width="80px"><el-form-item label="支付方式"><el-select v-model="batchPayMethod" style="width: 100%"><el-option label="银行转账" value="bank_transfer" /><el-option label="支付宝" value="alipay" /><el-option label="微信" value="wechat" /><el-option label="现金" value="cash" /></el-select></el-form-item></el-form>
+      <template #footer><el-button @click="batchPayVisible = false">取消</el-button><el-button type="primary" :loading="batchPayLoading" @click="submitBatchPay">确认</el-button></template>
+    </el-dialog>
   </div>
 </template>
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage, type FormInstance } from 'element-plus'
-import { listBills, createBill, updateBill, deleteBill, payBill, cancelBill } from '../../api/bill'
+import { ElMessage, ElMessageBox, type FormInstance } from 'element-plus'
+import { listBills, createBill, updateBill, deleteBill, payBill, cancelBill, batchPayBills, batchDeleteBills } from '../../api/bill'
 const loading = ref(false)
 const tableData = ref<any[]>([])
 const total = ref(0)
 const query = reactive({ page: 1, page_size: 20, payment_status: '' })
+const selectedIds = ref<number[]>([])
 function payStatusType(s: string) { return s === 'paid' ? 'success' : s === 'pending' ? 'warning' : s === 'overdue' ? 'danger' : 'info' }
+function handleSelectionChange(rows: any[]) { selectedIds.value = rows.map(r => r.id) }
 async function fetchData() { loading.value = true; try { const res: any = await listBills(query); tableData.value = res.data?.items || res.data || []; total.value = res.data?.total || tableData.value.length } finally { loading.value = false } }
 const dialogVisible = ref(false)
 const editId = ref(0)
@@ -62,5 +74,12 @@ const payId = ref(0)
 function handlePay(row: any) { payId.value = row.id; payMethod.value = 'bank_transfer'; payVisible.value = true }
 async function submitPay() { payLoading.value = true; try { await payBill(payId.value, { payment_method: payMethod.value }); ElMessage.success('支付成功'); payVisible.value = false; fetchData() } finally { payLoading.value = false } }
 async function handleCancel(id: number) { await cancelBill(id); ElMessage.success('已取消'); fetchData() }
+// Batch operations
+const batchPayVisible = ref(false)
+const batchPayLoading = ref(false)
+const batchPayMethod = ref('bank_transfer')
+function handleBatchPay() { batchPayMethod.value = 'bank_transfer'; batchPayVisible.value = true }
+async function submitBatchPay() { batchPayLoading.value = true; try { const res: any = await batchPayBills(selectedIds.value, batchPayMethod.value); ElMessage.success(`成功支付 ${res.data?.paid_count || selectedIds.value.length} 个账单`); batchPayVisible.value = false; fetchData() } finally { batchPayLoading.value = false } }
+async function handleBatchDelete() { try { await ElMessageBox.confirm(`确定批量删除 ${selectedIds.value.length} 个账单？仅待支付/已取消的账单可删除`, '批量删除确认'); const res: any = await batchDeleteBills(selectedIds.value); ElMessage.success(`成功删除 ${res.data?.deleted_count || 0} 个账单`); fetchData() } catch { /* cancelled */ } }
 onMounted(fetchData)
 </script>
