@@ -21,7 +21,7 @@ func NewAuthService(client *ent.Client) *AuthService {
 }
 
 // Register creates a new tenant and admin user.
-func (s *AuthService) Register(ctx context.Context, tenantName, contact, phone, email, username, password, realName string) (*ent.User, error) {
+func (s *AuthService) Register(ctx context.Context, tenantName, contact, phone, email, username, password, realName, tenantType string) (*ent.User, error) {
 	// Check if username already exists
 	exists, _ := s.client.User.Query().Where(user.Username(username)).Exist(ctx)
 	if exists {
@@ -45,9 +45,10 @@ func (s *AuthService) Register(ctx context.Context, tenantName, contact, phone, 
 		}
 	}()
 
-	// Create tenant
+	// Create tenant with type
 	t, err := tx.Tenant.Create().
 		SetName(tenantName).
+		SetType(tenant.Type(tenantType)).
 		SetContact(contact).
 		SetPhone(phone).
 		SetEmail(email).
@@ -83,8 +84,8 @@ func (s *AuthService) Register(ctx context.Context, tenantName, contact, phone, 
 		return nil, fmt.Errorf("创建用户失败: %w", err)
 	}
 
-	// Initialize tenant modules: enable all modules by default
-	defaultModules := []string{"server_lease", "billing"}
+	// Initialize tenant modules based on tenant type
+	defaultModules := getDefaultModules(tenantType)
 	for _, modName := range defaultModules {
 		_, err = tx.TenantModule.Create().
 			SetTenantID(t.ID).
@@ -101,6 +102,18 @@ func (s *AuthService) Register(ctx context.Context, tenantName, contact, phone, 
 	}
 
 	return u, nil
+}
+
+// getDefaultModules returns default modules based on tenant type.
+func getDefaultModules(tenantType string) []string {
+	switch tenantType {
+	case "enterprise":
+		return []string{"billing", "server_lease", "contract"}
+	case "team":
+		return []string{"billing", "server_lease", "task"}
+	default: // personal
+		return []string{"billing"}
+	}
 }
 
 // Login authenticates a user and returns the user entity.

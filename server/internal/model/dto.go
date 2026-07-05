@@ -47,6 +47,7 @@ type LoginReq struct {
 // RegisterReq is the request for registration.
 type RegisterReq struct {
 	TenantName string `json:"tenant_name" binding:"required"`
+	TenantType string `json:"tenant_type" binding:"required,oneof=personal enterprise team"`
 	Contact    string `json:"contact"`
 	Phone      string `json:"phone"`
 	Email      string `json:"email"`
@@ -57,10 +58,11 @@ type RegisterReq struct {
 
 // LoginResp is the response for login.
 type LoginResp struct {
-	Token    string `json:"token"`
-	UserID   int    `json:"user_id"`
-	TenantID int    `json:"tenant_id"`
-	Username string `json:"username"`
+	Token      string `json:"token"`
+	UserID     int    `json:"user_id"`
+	TenantID   int    `json:"tenant_id"`
+	TenantType string `json:"tenant_type"`
+	Username   string `json:"username"`
 }
 
 // ChangePasswordReq is the request for changing password.
@@ -129,4 +131,48 @@ type PageReq struct {
 type PageResp struct {
 	Total int         `json:"total"`
 	Items interface{} `json:"items"`
+}
+
+// CreateContractReq is the request for creating a contract.
+type CreateContractReq struct {
+	Title    string `json:"title" binding:"required"`
+	PartyA   string `json:"party_a"`
+	PartyB   string `json:"party_b"`
+	Amount   float64 `json:"amount"`
+	StartDate *Date  `json:"start_date"`
+	EndDate   *Date  `json:"end_date"`
+	FileURL  string `json:"file_url"`
+	Remark   string `json:"remark"`
+}
+
+// UpdateContractReq is the request for updating a contract.
+type UpdateContractReq struct {
+	Title    string `json:"title"`
+	PartyA   string `json:"party_a"`
+	PartyB   string `json:"party_b"`
+	Amount   float64 `json:"amount"`
+	StartDate *Date  `json:"start_date"`
+	EndDate   *Date  `json:"end_date"`
+	Status   string `json:"status"`
+	FileURL  string `json:"file_url"`
+	Remark   string `json:"remark"`
+}
+
+// CreateTaskReq is the request for creating a task.
+type CreateTaskReq struct {
+	Title       string `json:"title" binding:"required"`
+	Description string `json:"description"`
+	AssigneeID  int    `json:"assignee_id"`
+	Priority    string `json:"priority"`
+	DueDate     *Date  `json:"due_date"`
+}
+
+// UpdateTaskReq is the request for updating a task.
+type UpdateTaskReq struct {
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	AssigneeID  int    `json:"assignee_id"`
+	Status      string `json:"status"`
+	Priority    string `json:"priority"`
+	DueDate     *Date  `json:"due_date"`
 }
