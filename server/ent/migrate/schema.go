@@ -25,143 +25,49 @@ var (
 		{Name: "related_resource_id", Type: field.TypeInt, Nullable: true},
 		{Name: "tenant_id", Type: field.TypeInt},
 	}
-	BillsTable = &schema.Table{
-		Name:       "bills",
-		Columns:    BillsColumns,
-		PrimaryKey: []*schema.Column{BillsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{Symbol: "bills_server_leases_bills", Columns: []*schema.Column{BillsColumns[13]}, RefColumns: []*schema.Column{ServerLeasesColumns[0]}, OnDelete: schema.SetNull},
-			{Symbol: "bills_tenants_bills", Columns: []*schema.Column{BillsColumns[14]}, RefColumns: []*schema.Column{TenantsColumns[0]}, OnDelete: schema.NoAction},
-		},
-		Indexes: []*schema.Index{
-			{Name: "bill_tenant_id", Unique: false, Columns: []*schema.Column{BillsColumns[14]}},
-			{Name: "bill_bill_no", Unique: false, Columns: []*schema.Column{BillsColumns[3]}},
-			{Name: "bill_bill_type", Unique: false, Columns: []*schema.Column{BillsColumns[4]}},
-			{Name: "bill_payment_status", Unique: false, Columns: []*schema.Column{BillsColumns[9]}},
-			{Name: "bill_due_date", Unique: false, Columns: []*schema.Column{BillsColumns[7]}},
-		},
-	}
-	RolesColumns = []*schema.Column{
+	BillsTable = &schema.Table{Name: "bills", Columns: BillsColumns, PrimaryKey: []*schema.Column{BillsColumns[0]}, ForeignKeys: []*schema.ForeignKey{{Symbol: "bills_server_leases_bills", Columns: []*schema.Column{BillsColumns[13]}, RefColumns: []*schema.Column{ServerLeasesColumns[0]}, OnDelete: schema.SetNull}, {Symbol: "bills_tenants_bills", Columns: []*schema.Column{BillsColumns[14]}, RefColumns: []*schema.Column{TenantsColumns[0]}, OnDelete: schema.NoAction}}, Indexes: []*schema.Index{{Name: "bill_tenant_id", Unique: false, Columns: []*schema.Column{BillsColumns[14]}}, {Name: "bill_bill_no", Unique: false, Columns: []*schema.Column{BillsColumns[3]}}, {Name: "bill_bill_type", Unique: false, Columns: []*schema.Column{BillsColumns[4]}}, {Name: "bill_payment_status", Unique: false, Columns: []*schema.Column{BillsColumns[9]}}, {Name: "bill_due_date", Unique: false, Columns: []*schema.Column{BillsColumns[7]}}}}
+	ContractsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "name", Type: field.TypeString},
-		{Name: "permissions", Type: field.TypeJSON, Nullable: true},
-		{Name: "description", Type: field.TypeString, Default: ""},
-		{Name: "tenant_id", Type: field.TypeInt},
-	}
-	RolesTable = &schema.Table{
-		Name:       "roles",
-		Columns:    RolesColumns,
-		PrimaryKey: []*schema.Column{RolesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{{Symbol: "roles_tenants_roles", Columns: []*schema.Column{RolesColumns[6]}, RefColumns: []*schema.Column{TenantsColumns[0]}, OnDelete: schema.NoAction}},
-		Indexes: []*schema.Index{{Name: "role_tenant_id", Unique: false, Columns: []*schema.Column{RolesColumns[6]}}},
-	}
-	ServerLeasesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "server_name", Type: field.TypeString},
-		{Name: "provider", Type: field.TypeString, Default: ""},
-		{Name: "config", Type: field.TypeString, Default: ""},
-		{Name: "ip_address", Type: field.TypeString, Default: ""},
-		{Name: "location", Type: field.TypeString, Default: ""},
-		{Name: "monthly_cost", Type: field.TypeFloat64, Default: 0},
+		{Name: "title", Type: field.TypeString},
+		{Name: "party_a", Type: field.TypeString, Default: ""},
+		{Name: "party_b", Type: field.TypeString, Default: ""},
+		{Name: "amount", Type: field.TypeFloat64, Default: 0},
 		{Name: "start_date", Type: field.TypeTime},
 		{Name: "end_date", Type: field.TypeTime},
-		{Name: "renew_cycle", Type: field.TypeEnum, Enums: []string{"monthly", "quarterly", "yearly"}, Default: "monthly"},
-		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "expiring", "expired", "terminated"}, Default: "active"},
-		{Name: "contract_no", Type: field.TypeString, Default: ""},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"draft", "active", "expired", "terminated"}, Default: "draft"},
+		{Name: "file_url", Type: field.TypeString, Default: ""},
 		{Name: "remark", Type: field.TypeString, Default: ""},
 		{Name: "tenant_id", Type: field.TypeInt},
 	}
-	ServerLeasesTable = &schema.Table{
-		Name:       "server_leases",
-		Columns:    ServerLeasesColumns,
-		PrimaryKey: []*schema.Column{ServerLeasesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{{Symbol: "server_leases_tenants_server_leases", Columns: []*schema.Column{ServerLeasesColumns[15]}, RefColumns: []*schema.Column{TenantsColumns[0]}, OnDelete: schema.NoAction}},
-		Indexes: []*schema.Index{
-			{Name: "serverlease_tenant_id", Unique: false, Columns: []*schema.Column{ServerLeasesColumns[15]}},
-			{Name: "serverlease_status", Unique: false, Columns: []*schema.Column{ServerLeasesColumns[12]}},
-			{Name: "serverlease_end_date", Unique: false, Columns: []*schema.Column{ServerLeasesColumns[10]}},
-			{Name: "serverlease_provider", Unique: false, Columns: []*schema.Column{ServerLeasesColumns[4]}},
-		},
-	}
-	TenantsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "name", Type: field.TypeString},
-		{Name: "contact", Type: field.TypeString, Default: ""},
-		{Name: "phone", Type: field.TypeString, Default: ""},
-		{Name: "email", Type: field.TypeString, Default: ""},
-		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "suspended"}, Default: "active"},
-	}
-	TenantsTable = &schema.Table{
-		Name:       "tenants",
-		Columns:    TenantsColumns,
-		PrimaryKey: []*schema.Column{TenantsColumns[0]},
-		Indexes: []*schema.Index{{Name: "tenant_status", Unique: false, Columns: []*schema.Column{TenantsColumns[7]}}},
-	}
-	TenantModulesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "module_name", Type: field.TypeString},
-		{Name: "enabled", Type: field.TypeBool, Default: true},
-		{Name: "tenant_id", Type: field.TypeInt},
-	}
-	TenantModulesTable = &schema.Table{
-		Name:       "tenant_modules",
-		Columns:    TenantModulesColumns,
-		PrimaryKey: []*schema.Column{TenantModulesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{{Symbol: "tenant_modules_tenants_modules", Columns: []*schema.Column{TenantModulesColumns[5]}, RefColumns: []*schema.Column{TenantsColumns[0]}, OnDelete: schema.NoAction}},
-		Indexes: []*schema.Index{{Name: "tenantmodule_tenant_id_module_name", Unique: true, Columns: []*schema.Column{TenantModulesColumns[5], TenantModulesColumns[3]}}},
-	}
-	UsersColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "username", Type: field.TypeString, Unique: true},
-		{Name: "password_hash", Type: field.TypeString},
-		{Name: "real_name", Type: field.TypeString, Default: ""},
-		{Name: "email", Type: field.TypeString, Default: ""},
-		{Name: "phone", Type: field.TypeString, Default: ""},
-		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "disabled"}, Default: "active"},
-		{Name: "tenant_id", Type: field.TypeInt},
-	}
-	UsersTable = &schema.Table{
-		Name:       "users",
-		Columns:    UsersColumns,
-		PrimaryKey: []*schema.Column{UsersColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{{Symbol: "users_tenants_users", Columns: []*schema.Column{UsersColumns[9]}, RefColumns: []*schema.Column{TenantsColumns[0]}, OnDelete: schema.NoAction}},
-		Indexes: []*schema.Index{
-			{Name: "user_tenant_id", Unique: false, Columns: []*schema.Column{UsersColumns[9]}},
-			{Name: "user_username", Unique: false, Columns: []*schema.Column{UsersColumns[3]}},
-			{Name: "user_status", Unique: false, Columns: []*schema.Column{UsersColumns[8]}},
-		},
-	}
-	RoleUsersColumns = []*schema.Column{
-		{Name: "role_id", Type: field.TypeInt},
-		{Name: "user_id", Type: field.TypeInt},
-	}
-	RoleUsersTable = &schema.Table{
-		Name:       "role_users",
-		Columns:    RoleUsersColumns,
-		PrimaryKey: []*schema.Column{RoleUsersColumns[0], RoleUsersColumns[1]},
-		ForeignKeys: []*schema.ForeignKey{
-			{Symbol: "role_users_role_id", Columns: []*schema.Column{RoleUsersColumns[0]}, RefColumns: []*schema.Column{RolesColumns[0]}, OnDelete: schema.Cascade},
-			{Symbol: "role_users_user_id", Columns: []*schema.Column{RoleUsersColumns[1]}, RefColumns: []*schema.Column{UsersColumns[0]}, OnDelete: schema.Cascade},
-		},
-	}
-	Tables = []*schema.Table{BillsTable, RolesTable, ServerLeasesTable, TenantsTable, TenantModulesTable, UsersTable, RoleUsersTable}
+	ContractsTable = &schema.Table{Name: "contracts", Columns: ContractsColumns, PrimaryKey: []*schema.Column{ContractsColumns[0]}, ForeignKeys: []*schema.ForeignKey{{Symbol: "contracts_tenants_contracts", Columns: []*schema.Column{ContractsColumns[12]}, RefColumns: []*schema.Column{TenantsColumns[0]}, OnDelete: schema.NoAction}}, Indexes: []*schema.Index{{Name: "contract_tenant_id", Unique: false, Columns: []*schema.Column{ContractsColumns[12]}}, {Name: "contract_status", Unique: false, Columns: []*schema.Column{ContractsColumns[9]}}, {Name: "contract_end_date", Unique: false, Columns: []*schema.Column{ContractsColumns[8]}}}}
+	RolesColumns = []*schema.Column{{Name: "id", Type: field.TypeInt, Increment: true}, {Name: "created_at", Type: field.TypeTime}, {Name: "updated_at", Type: field.TypeTime}, {Name: "name", Type: field.TypeString}, {Name: "permissions", Type: field.TypeJSON, Nullable: true}, {Name: "description", Type: field.TypeString, Default: ""}, {Name: "tenant_id", Type: field.TypeInt}}
+	RolesTable = &schema.Table{Name: "roles", Columns: RolesColumns, PrimaryKey: []*schema.Column{RolesColumns[0]}, ForeignKeys: []*schema.ForeignKey{{Symbol: "roles_tenants_roles", Columns: []*schema.Column{RolesColumns[6]}, RefColumns: []*schema.Column{TenantsColumns[0]}, OnDelete: schema.NoAction}}, Indexes: []*schema.Index{{Name: "role_tenant_id", Unique: false, Columns: []*schema.Column{RolesColumns[6]}}}}
+	ServerLeasesColumns = []*schema.Column{{Name: "id", Type: field.TypeInt, Increment: true}, {Name: "created_at", Type: field.TypeTime}, {Name: "updated_at", Type: field.TypeTime}, {Name: "server_name", Type: field.TypeString}, {Name: "provider", Type: field.TypeString, Default: ""}, {Name: "config", Type: field.TypeString, Default: ""}, {Name: "ip_address", Type: field.TypeString, Default: ""}, {Name: "location", Type: field.TypeString, Default: ""}, {Name: "monthly_cost", Type: field.TypeFloat64, Default: 0}, {Name: "start_date", Type: field.TypeTime}, {Name: "end_date", Type: field.TypeTime}, {Name: "renew_cycle", Type: field.TypeEnum, Enums: []string{"monthly", "quarterly", "yearly"}, Default: "monthly"}, {Name: "status", Type: field.TypeEnum, Enums: []string{"active", "expiring", "expired", "terminated"}, Default: "active"}, {Name: "contract_no", Type: field.TypeString, Default: ""}, {Name: "remark", Type: field.TypeString, Default: ""}, {Name: "tenant_id", Type: field.TypeInt}}
+	ServerLeasesTable = &schema.Table{Name: "server_leases", Columns: ServerLeasesColumns, PrimaryKey: []*schema.Column{ServerLeasesColumns[0]}, ForeignKeys: []*schema.ForeignKey{{Symbol: "server_leases_tenants_server_leases", Columns: []*schema.Column{ServerLeasesColumns[15]}, RefColumns: []*schema.Column{TenantsColumns[0]}, OnDelete: schema.NoAction}}, Indexes: []*schema.Index{{Name: "serverlease_tenant_id", Unique: false, Columns: []*schema.Column{ServerLeasesColumns[15]}}, {Name: "serverlease_status", Unique: false, Columns: []*schema.Column{ServerLeasesColumns[12]}}, {Name: "serverlease_end_date", Unique: false, Columns: []*schema.Column{ServerLeasesColumns[10]}}, {Name: "serverlease_provider", Unique: false, Columns: []*schema.Column{ServerLeasesColumns[4]}}}}
+	TasksColumns = []*schema.Column{{Name: "id", Type: field.TypeInt, Increment: true}, {Name: "created_at", Type: field.TypeTime}, {Name: "updated_at", Type: field.TypeTime}, {Name: "title", Type: field.TypeString}, {Name: "description", Type: field.TypeString, Default: ""}, {Name: "status", Type: field.TypeEnum, Enums: []string{"pending", "in_progress", "completed", "cancelled"}, Default: "pending"}, {Name: "priority", Type: field.TypeEnum, Enums: []string{"low", "medium", "high", "urgent"}, Default: "medium"}, {Name: "due_date", Type: field.TypeTime, Nullable: true}, {Name: "tenant_id", Type: field.TypeInt}, {Name: "assignee_id", Type: field.TypeInt, Nullable: true}, {Name: "creator_id", Type: field.TypeInt}}
+	TasksTable = &schema.Table{Name: "tasks", Columns: TasksColumns, PrimaryKey: []*schema.Column{TasksColumns[0]}, ForeignKeys: []*schema.ForeignKey{{Symbol: "tasks_tenants_tasks", Columns: []*schema.Column{TasksColumns[8]}, RefColumns: []*schema.Column{TenantsColumns[0]}, OnDelete: schema.NoAction}, {Symbol: "tasks_users_assigned_tasks", Columns: []*schema.Column{TasksColumns[9]}, RefColumns: []*schema.Column{UsersColumns[0]}, OnDelete: schema.SetNull}, {Symbol: "tasks_users_created_tasks", Columns: []*schema.Column{TasksColumns[10]}, RefColumns: []*schema.Column{UsersColumns[0]}, OnDelete: schema.NoAction}}, Indexes: []*schema.Index{{Name: "task_tenant_id", Unique: false, Columns: []*schema.Column{TasksColumns[8]}}, {Name: "task_assignee_id", Unique: false, Columns: []*schema.Column{TasksColumns[9]}}, {Name: "task_creator_id", Unique: false, Columns: []*schema.Column{TasksColumns[10]}}, {Name: "task_status", Unique: false, Columns: []*schema.Column{TasksColumns[5]}}, {Name: "task_priority", Unique: false, Columns: []*schema.Column{TasksColumns[6]}}}}
+	TenantsColumns = []*schema.Column{{Name: "id", Type: field.TypeInt, Increment: true}, {Name: "created_at", Type: field.TypeTime}, {Name: "updated_at", Type: field.TypeTime}, {Name: "name", Type: field.TypeString}, {Name: "type", Type: field.TypeEnum, Enums: []string{"personal", "enterprise", "team"}, Default: "personal"}, {Name: "contact", Type: field.TypeString, Default: ""}, {Name: "phone", Type: field.TypeString, Default: ""}, {Name: "email", Type: field.TypeString, Default: ""}, {Name: "status", Type: field.TypeEnum, Enums: []string{"active", "suspended"}, Default: "active"}}
+	TenantsTable = &schema.Table{Name: "tenants", Columns: TenantsColumns, PrimaryKey: []*schema.Column{TenantsColumns[0]}, Indexes: []*schema.Index{{Name: "tenant_status", Unique: false, Columns: []*schema.Column{TenantsColumns[8]}}}}
+	TenantModulesColumns = []*schema.Column{{Name: "id", Type: field.TypeInt, Increment: true}, {Name: "created_at", Type: field.TypeTime}, {Name: "updated_at", Type: field.TypeTime}, {Name: "module_name", Type: field.TypeString}, {Name: "enabled", Type: field.TypeBool, Default: true}, {Name: "tenant_id", Type: field.TypeInt}}
+	TenantModulesTable = &schema.Table{Name: "tenant_modules", Columns: TenantModulesColumns, PrimaryKey: []*schema.Column{TenantModulesColumns[0]}, ForeignKeys: []*schema.ForeignKey{{Symbol: "tenant_modules_tenants_modules", Columns: []*schema.Column{TenantModulesColumns[5]}, RefColumns: []*schema.Column{TenantsColumns[0]}, OnDelete: schema.NoAction}}, Indexes: []*schema.Index{{Name: "tenantmodule_tenant_id_module_name", Unique: true, Columns: []*schema.Column{TenantModulesColumns[5], TenantModulesColumns[3]}}}}
+	UsersColumns = []*schema.Column{{Name: "id", Type: field.TypeInt, Increment: true}, {Name: "created_at", Type: field.TypeTime}, {Name: "updated_at", Type: field.TypeTime}, {Name: "username", Type: field.TypeString, Unique: true}, {Name: "password_hash", Type: field.TypeString}, {Name: "real_name", Type: field.TypeString, Default: ""}, {Name: "email", Type: field.TypeString, Default: ""}, {Name: "phone", Type: field.TypeString, Default: ""}, {Name: "status", Type: field.TypeEnum, Enums: []string{"active", "disabled"}, Default: "active"}, {Name: "tenant_id", Type: field.TypeInt}}
+	UsersTable = &schema.Table{Name: "users", Columns: UsersColumns, PrimaryKey: []*schema.Column{UsersColumns[0]}, ForeignKeys: []*schema.ForeignKey{{Symbol: "users_tenants_users", Columns: []*schema.Column{UsersColumns[9]}, RefColumns: []*schema.Column{TenantsColumns[0]}, OnDelete: schema.NoAction}}, Indexes: []*schema.Index{{Name: "user_tenant_id", Unique: false, Columns: []*schema.Column{UsersColumns[9]}}, {Name: "user_username", Unique: false, Columns: []*schema.Column{UsersColumns[3]}}, {Name: "user_status", Unique: false, Columns: []*schema.Column{UsersColumns[8]}}}}
+	RoleUsersColumns = []*schema.Column{{Name: "role_id", Type: field.TypeInt}, {Name: "user_id", Type: field.TypeInt}}
+	RoleUsersTable = &schema.Table{Name: "role_users", Columns: RoleUsersColumns, PrimaryKey: []*schema.Column{RoleUsersColumns[0], RoleUsersColumns[1]}, ForeignKeys: []*schema.ForeignKey{{Symbol: "role_users_role_id", Columns: []*schema.Column{RoleUsersColumns[0]}, RefColumns: []*schema.Column{RolesColumns[0]}, OnDelete: schema.Cascade}, {Symbol: "role_users_user_id", Columns: []*schema.Column{RoleUsersColumns[1]}, RefColumns: []*schema.Column{UsersColumns[0]}, OnDelete: schema.Cascade}}}
+	Tables = []*schema.Table{BillsTable, ContractsTable, RolesTable, ServerLeasesTable, TasksTable, TenantsTable, TenantModulesTable, UsersTable, RoleUsersTable}
 )
 
 func init() {
 	BillsTable.ForeignKeys[0].RefTable = ServerLeasesTable
 	BillsTable.ForeignKeys[1].RefTable = TenantsTable
+	ContractsTable.ForeignKeys[0].RefTable = TenantsTable
 	RolesTable.ForeignKeys[0].RefTable = TenantsTable
 	ServerLeasesTable.ForeignKeys[0].RefTable = TenantsTable
+	TasksTable.ForeignKeys[0].RefTable = TenantsTable
+	TasksTable.ForeignKeys[1].RefTable = UsersTable
+	TasksTable.ForeignKeys[2].RefTable = UsersTable
 	TenantModulesTable.ForeignKeys[0].RefTable = TenantsTable
 	UsersTable.ForeignKeys[0].RefTable = TenantsTable
 	RoleUsersTable.ForeignKeys[0].RefTable = RolesTable
