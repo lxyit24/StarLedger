@@ -6,6 +6,8 @@ import { useAppStore } from '../stores/app'
 const routeModuleMap: Record<string, string> = {
   '/servers': 'server_lease',
   '/bills': 'billing',
+  '/contracts': 'contract',
+  '/tasks': 'task',
 }
 
 const routes = [
@@ -37,6 +39,18 @@ const routes = [
         name: 'Bills',
         component: () => import('../views/billing/index.vue'),
         meta: { title: '账单管理' },
+      },
+      {
+        path: 'contracts',
+        name: 'Contracts',
+        component: () => import('../views/contract/index.vue'),
+        meta: { title: '合同管理' },
+      },
+      {
+        path: 'tasks',
+        name: 'Tasks',
+        component: () => import('../views/task/index.vue'),
+        meta: { title: '任务协作' },
       },
       {
         path: 'market',
